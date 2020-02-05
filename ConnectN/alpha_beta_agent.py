@@ -30,6 +30,9 @@ class AlphaBetaAgent(agent.Agent):
         # Your code here
 
         # Read board
+
+        for i in range(brd.w):
+            pass
         
         # Interpret using heurisitcs
         # Create graph and load in heuristics
