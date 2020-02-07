@@ -30,15 +30,10 @@ class AlphaBetaAgent(agent.Agent):
         # Your code here
 
         # Read board
-<<<<<<< HEAD
-=======
 
-        for i in range(brd.w):
-            pass
-        
+
         # Interpret using heurisitcs
         # Create graph and load in heuristics
->>>>>>> 31a3727a6d6b363624589baee9628475391dca9d
 
         # Interpret using heurisitcs - Winny - make fake heuristics
         # Create graph and load in heuristics - We'll figure it out
@@ -47,7 +42,41 @@ class AlphaBetaAgent(agent.Agent):
         # Call alpha beta on graph - Mei
 
         # Make decision
-        return random.choice(brd.free_cols());
+        v = self.maxval(brd, -math.inf, math.inf)
+        return v                     # fix this later (arg(v))
+
+    # Return maximum utility across all nodes
+    def maxval(self, brd, alpha, beta):
+        if self.tertest(brd):
+            return self.utility(brd)               # fix this
+        v = -math.inf
+        for i in range(brd.w):
+            v = max(v, self.minval(brd, alpha, beta))           # fix this
+            if v >= beta:
+                return v
+            alpha = max(alpha, v)
+        return v
+
+    # Return minimum value across all nodes
+    def minval(self, brd, alpha, beta):
+        if self.tertest(brd):
+            return self.utility(brd)  # fix this
+        v = math.inf
+        for i in range(brd.w):
+            v = min(v, self.maxval(brd, alpha, beta))  # fix this
+            if v <= alpha:
+                return v
+            beta = min(beta, v)
+        return v
+
+    # Determines whether a node is in terminal state
+    def tertest(self, brd):
+        return True
+
+    # Returns utility of a given board
+    def utility(self, brd):
+        return 0
+
 
     # Get the successors of the given board.
     #
