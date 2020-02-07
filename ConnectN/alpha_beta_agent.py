@@ -30,11 +30,12 @@ class AlphaBetaAgent(agent.Agent):
         # Your code here
 
         # Read board
-        
-        # Interpret using heurisitcs
-        # Create graph and load in heuristics
 
-        # Call alpha beta on graph
+        # Interpret using heurisitcs - Winny - make fake heuristics
+        # Create graph and load in heuristics - We'll figure it out
+        # Create graph class - Joe
+
+        # Call alpha beta on graph - Mei
 
         # Make decision
         return random.choice(brd.free_cols());
