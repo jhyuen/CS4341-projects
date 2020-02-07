@@ -30,7 +30,20 @@ class AlphaBetaAgent(agent.Agent):
         # Your code here
 
         # Read board
+        succ = self.getall_succ(brd, 1)
 
+        print("All Successors")
+        max = -1
+        move = -1
+        for s in succ:
+            # print(s[0].print_it())
+            # print("\tMove: ", s[1])
+            h = self.evalbrd(s[0])
+            print((h, s[1]))
+            if max < h:
+                max = h
+                move = s[1]
+        print("End")
 
         # Interpret using heurisitcs
         # Create graph and load in heuristics
@@ -102,3 +115,30 @@ class AlphaBetaAgent(agent.Agent):
             # Add board to list of successors
             succ.append((nb,col))
         return succ
+
+    # Get all the possible configurations x number of moves deep
+    #
+    # PARAM [board.Board] brd: the current board state
+    # PARAM [int] depth: number of moves deep
+    # RETURN [list of (board.Board, int)]: a list of the successor boards,
+    #                                      along with the column where the last
+    #
+    def getall_succ(self, brd, depth):
+        all_succ = []
+        brd_succ = self.get_successors(brd)
+
+        if depth > 1:
+            for b in brd_succ:
+                all_succ += self.getall_succ(b[0], depth-1)
+
+        if depth == 1:
+            return brd_succ
+        return all_succ
+
+    # Evaluates the given board configuration
+    #
+    # PARAM [board.Board] brd: the board state
+    # RETURN [int] heuristic value for given board
+    #
+    def evalbrd(self, brd):
+        return random.randint(0, 100)
