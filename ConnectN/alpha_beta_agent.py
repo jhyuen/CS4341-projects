@@ -30,15 +30,9 @@ class AlphaBetaAgent(agent.Agent):
         # Your code here
 
         # Read board
-<<<<<<< HEAD
-=======
 
         for i in range(brd.w):
             pass
-        
-        # Interpret using heurisitcs
-        # Create graph and load in heuristics
->>>>>>> 31a3727a6d6b363624589baee9628475391dca9d
 
         # Interpret using heurisitcs - Winny - make fake heuristics
         # Create graph and load in heuristics - We'll figure it out
@@ -47,7 +41,7 @@ class AlphaBetaAgent(agent.Agent):
         # Call alpha beta on graph - Mei
 
         # Make decision
-        return random.choice(brd.free_cols());
+        return random.choice(brd.free_cols())
 
     # Get the successors of the given board.
     #
