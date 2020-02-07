@@ -2,7 +2,6 @@ import math
 import agent
 import board
 import random
-import graph
 
 ###########################
 # Alpha-Beta Search Agent #
@@ -28,68 +27,40 @@ class AlphaBetaAgent(agent.Agent):
     # NOTE: make sure the column is legal, or you'll lose the game.
     def go(self, brd):
         """Search for the best move (choice of column for the token)"""
-        # Your code here
-
-        # Read board
-        succ = self.getall_succ(brd, 1)
-
-        print("All Successors")
-        max = -1
-        move = -1
-        for s in succ:
-            # print(s[0].print_it())
-            # print("\tMove: ", s[1])
-            h = self.evalbrd(s[0])
-            print((h, s[1]))
-            if max < h:
-                max = h
-                move = s[1]
-        print("End")
-
-        # Interpret using heurisitcs
-        # Create graph and load in heuristics
-
-        # Interpret using heurisitcs - Winny - make fake heuristics
-        # Create graph and load in heuristics - We'll figure it out
-        # Create graph class - Joe
-
-        # Call alpha beta on graph - Mei
-
         # Make decision
-        v = self.maxval(brd, -math.inf, math.inf)
+        curdepth = 0
+        v = self.maxval(brd, -math.inf, math.inf, curdepth)
         return v                     # fix this later (arg(v))
 
     # Return maximum utility across all nodes
-    def maxval(self, brd, alpha, beta):
-        if self.tertest(brd):
+    def maxval(self, brd, alpha, beta, curdepth):
+        if curdepth == self.max_depth:
             return self.utility(brd)               # fix this
         v = -math.inf
-        for i in range(brd.w):
-            v = max(v, self.minval(brd, alpha, beta))           # fix this
+        brdactlist = self.get_successors(brd)
+        for i in brdactlist:
+            v = max(v, self.minval(i[0], alpha, beta, curdepth+1))
             if v >= beta:
                 return v
             alpha = max(alpha, v)
         return v
 
     # Return minimum value across all nodes
-    def minval(self, brd, alpha, beta):
-        if self.tertest(brd):
+    def minval(self, brd, alpha, beta, curdepth):
+        if curdepth == self.max_depth:
             return self.utility(brd)  # fix this
         v = math.inf
-        for i in range(brd.w):
-            v = min(v, self.maxval(brd, alpha, beta))  # fix this
+        brdactlist = self.get_successors(brd)
+        for i in brdactlist:
+            v = min(v, self.maxval(i[0], alpha, beta, curdepth+1))
             if v <= alpha:
                 return v
             beta = min(beta, v)
         return v
 
-    # Determines whether a node is in terminal state
-    def tertest(self, brd):
-        return True
-
     # Returns utility of a given board
     def utility(self, brd):
-        return 0
+        return random.randint(0, 100)
 
 
     # Get the successors of the given board.
@@ -116,30 +87,3 @@ class AlphaBetaAgent(agent.Agent):
             # Add board to list of successors
             succ.append((nb,col))
         return succ
-
-    # Get all the possible configurations x number of moves deep
-    #
-    # PARAM [board.Board] brd: the current board state
-    # PARAM [int] depth: number of moves deep
-    # RETURN [list of (board.Board, int)]: a list of the successor boards,
-    #                                      along with the column where the last
-    #
-    def getall_succ(self, brd, depth):
-        all_succ = []
-        brd_succ = self.get_successors(brd)
-
-        if depth > 1:
-            for b in brd_succ:
-                all_succ += self.getall_succ(b[0], depth-1)
-
-        if depth == 1:
-            return brd_succ
-        return all_succ
-
-    # Evaluates the given board configuration
-    #
-    # PARAM [board.Board] brd: the board state
-    # RETURN [int] heuristic value for given board
-    #
-    def evalbrd(self, brd):
-        return random.randint(0, 100)
