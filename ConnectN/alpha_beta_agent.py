@@ -29,34 +29,42 @@ class AlphaBetaAgent(agent.Agent):
         """Search for the best move (choice of column for the token)"""
         # Make decision
         curdepth = 0
-        v = self.maxval(brd, -math.inf, math.inf, curdepth)
-        return v                     # fix this later (arg(v))
+        v, a = self.maxval(brd, -math.inf, math.inf, curdepth)
+        return a                  # fix this later (arg(v))
 
     # Return maximum utility across all nodes
     def maxval(self, brd, alpha, beta, curdepth):
         if curdepth == self.max_depth:
-            return self.utility(brd)               # fix this
+            return self.utility(brd), -1               # fix this
         v = -math.inf
+        action = -1
         brdactlist = self.get_successors(brd)
         for i in brdactlist:
-            v = max(v, self.minval(i[0], alpha, beta, curdepth+1))
+            node_v, a = self.minval(i[0], alpha, beta, curdepth+1)
+            if node_v > v:
+                v = node_v
+                action = i[1]
             if v >= beta:
-                return v
+                return v, a
             alpha = max(alpha, v)
-        return v
+        return v, action
 
     # Return minimum value across all nodes
     def minval(self, brd, alpha, beta, curdepth):
         if curdepth == self.max_depth:
-            return self.utility(brd)  # fix this
+            return self.utility(brd), -1  # fix this
         v = math.inf
+        action = -1
         brdactlist = self.get_successors(brd)
         for i in brdactlist:
-            v = min(v, self.maxval(i[0], alpha, beta, curdepth+1))
+            node_v, a = self.maxval(i[0], alpha, beta, curdepth+1)
+            if node_v < v:
+                v = node_v
+                action = i[1]
             if v <= alpha:
-                return v
+                return v, a
             beta = min(beta, v)
-        return v
+        return v, action
 
     # Returns utility of a given board
     def utility(self, brd):
@@ -85,5 +93,5 @@ class AlphaBetaAgent(agent.Agent):
             # (This internally changes nb.player, check the method definition!)
             nb.add_token(col)
             # Add board to list of successors
-            succ.append((nb,col))
+            succ.append((nb, col))
         return succ

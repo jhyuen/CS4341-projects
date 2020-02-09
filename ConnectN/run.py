@@ -45,11 +45,11 @@ g = game.Game(7, # width
 #
 # Human vs. Human
 #
-g = game.Game(7, # width
-              6, # height
-              4, # tokens in a row to win
-              agent.InteractiveAgent("human1"),   # player 1
-              agent.InteractiveAgent("human2"))   # player 2
+# g = game.Game(7, # width
+#               6, # height
+#               4, # tokens in a row to win
+#               agent.InteractiveAgent("human1"),   # player 1
+#               agent.InteractiveAgent("human2"))   # player 2
 
 # Execute the game
 outcome = g.go()
