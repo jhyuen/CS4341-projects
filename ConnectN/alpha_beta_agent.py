@@ -30,6 +30,7 @@ class AlphaBetaAgent(agent.Agent):
         # Make decision
         curdepth = 0
         v, a = self.maxval(brd, -math.inf, math.inf, curdepth)
+        print("V and action: ", v, a)
         return a                  # fix this later (arg(v))
 
     # Return maximum utility across all nodes
@@ -68,7 +69,28 @@ class AlphaBetaAgent(agent.Agent):
 
     # Returns utility of a given board
     def utility(self, brd):
-        return random.randint(0, 100)
+        points = 0
+        for h in range(brd.h):
+            for w in range(brd.w):
+                piece = brd.board[h][w]
+                if piece == 2 and w == 0:
+                    points += 10
+                elif piece == 2 and w == 1:
+                    points += 7
+                elif piece == 2 and w == 2:
+                    points += 5
+                elif piece == 2 and w == 3:
+                    points += 2
+                elif piece == 2 and w == 4:
+                    points -= 1
+                elif piece == 2 and w == 5:
+                    points -= 5
+                elif piece == 2 and w == 6:
+                    points -= 10
+        # print("Points :", points)
+        # brd.print_it()
+        return points
+        # return random.randint(0, 100)
 
 
     # Get the successors of the given board.
