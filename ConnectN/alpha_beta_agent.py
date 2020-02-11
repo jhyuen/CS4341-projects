@@ -152,15 +152,15 @@ class AlphaBetaAgent(agent.Agent):
         if spaceTokens == n:
             return 0
         elif playerTokens == n:
-            return 100000
+            return (playerTokens**n)**n
         elif opponentTokens == n:
-            return -100000
+            return ((playerTokens**n)**n) * -1
         elif (playerTokens > 0) and (opponentTokens > 0):
             return 0
         elif (playerTokens > 0) and (opponentTokens == 0):
-            return playerTokens*n
+            return playerTokens**n
         elif (opponentTokens > 0) and (playerTokens == 0):
-            return opponentTokens*n*-1
+            return (opponentTokens**n)*-1
         else:
             return 0
 
