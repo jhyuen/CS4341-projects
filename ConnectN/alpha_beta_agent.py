@@ -36,12 +36,14 @@ class AlphaBetaAgent(agent.Agent):
         return a
 
     # Return maximum utility across all nodes
-    def maxval(self, brd, alpha, beta, curdepth):
-        if curdepth == self.max_depth:
-            return self.utility(brd), -1               
+    def maxval(self, brd, alpha, beta, curdepth):              
         v = -math.inf
         action = -1
         brdactlist = self.get_successors(brd)
+
+        if curdepth == self.max_depth or len(brdactlist) == 0:
+            return self.utility(brd), -1 
+
         for i in brdactlist:
             node_v, a = self.minval(i[0], alpha, beta, curdepth+1)
             if node_v > v:
@@ -54,11 +56,13 @@ class AlphaBetaAgent(agent.Agent):
 
     # Return minimum value across all nodes
     def minval(self, brd, alpha, beta, curdepth):
-        if curdepth == self.max_depth:
-            return self.utility(brd), -1  # fix this
         v = math.inf
         action = -1
         brdactlist = self.get_successors(brd)
+
+        if curdepth == self.max_depth or len(brdactlist) == 0:
+            return self.utility(brd), -1 
+
         for i in brdactlist:
             node_v, a = self.maxval(i[0], alpha, beta, curdepth+1)
             if node_v < v:
@@ -76,10 +80,7 @@ class AlphaBetaAgent(agent.Agent):
         player = 1
         opponent = 2
 
-        if brd.player == 1:
-            player == brd.player
-            opponent == 2
-        else:
+        if brd.player == 2:
             player = brd.player
             opponent = 1
 
@@ -154,7 +155,7 @@ class AlphaBetaAgent(agent.Agent):
         elif playerTokens == n:
             return (playerTokens**n)**n
         elif opponentTokens == n:
-            return ((playerTokens**n)**n) * -1
+            return ((opponentTokens**n)**n) * -1
         elif (playerTokens > 0) and (opponentTokens > 0):
             return 0
         elif (playerTokens > 0) and (opponentTokens == 0):
@@ -174,10 +175,15 @@ class AlphaBetaAgent(agent.Agent):
     # RETURN [Bool]: True if n tokens of the same type have been found, False otherwise EDIT
     def checkLines(self, brd, x, y, n, p, o):
         """ """
+
         points = 0
         points += self.connectNCheck(brd, x, y, 1, 0, n, p, o) # Horizontal
         points += self.connectNCheck(brd, x, y, 0, 1, n, p, o) # Vertical
         points += self.connectNCheck(brd, x, y, 1, 1, n, p, o) # Diagonal up
         points += self.connectNCheck(brd, x, y, 1, -1, n, p, o) # Diagonal down
+    
+        if p == brd.board[0][int(brd.w/2)]:
+            points += 1
+
         return points
             
