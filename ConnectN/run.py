@@ -31,7 +31,7 @@ g = game.Game(7, # width
               6, # height
                4, # tokens in a row to win
                agent.RandomAgent("random"),        # player 1
-               aba.AlphaBetaAgent("alphabeta", 6)) # player 2
+               aba.AlphaBetaAgent("alphabeta", 2)) # player 2
 
 #
 # Human vs. AlphaBeta
