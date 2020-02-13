@@ -35,8 +35,16 @@ class AlphaBetaAgent(agent.Agent):
 
         return a
 
-    # Return maximum utility across all nodes
+    # Find maximum value across all nodes
+    #
+    # PARAM [board] brd:  the board for a given game of connectN
+    # PARAM [int] alpha: the alpha value used in alpha-beta pruning
+    # PARAM [int] beta: the beta value used in alpha-beta pruning
+    # PARAM [int] curdepth: the current depth of the algorithm
+    # PARAM [int] player: player token id number
+    # RETURN [int]: Maximum value across all nodes
     def maxval(self, brd, alpha, beta, curdepth, player):
+        """ Returns the maximum value across all nodes """
         v = -math.inf
         action = -1
         brdactlist = self.get_successors(brd)
@@ -54,8 +62,17 @@ class AlphaBetaAgent(agent.Agent):
             alpha = max(alpha, v)
         return v, action
 
-    # Return minimum value across all nodes
+    # Find minimum value across all nodes
+    #
+    # PARAM [board] brd:  the board for a given game of connectN
+    # PARAM [int] alpha: the alpha value used in alpha-beta pruning
+    # PARAM [int] beta: the beta value used in alpha-beta pruning
+    # PARAM [int] curdepth: the current depth of the algorithm
+    # PARAM [int] player: player token id number
+    # RETURN [int]: Minimum value across all nodes
     def minval(self, brd, alpha, beta, curdepth, player):
+        """ Returns the minimum value across all nodes """
+
         v = math.inf
         action = -1
         brdactlist = self.get_successors(brd)
@@ -73,8 +90,14 @@ class AlphaBetaAgent(agent.Agent):
             beta = min(beta, v)
         return v, action
 
-    # Returns utility of a given board
+    # Generate utility value for a given board state
+    #
+    # PARAM [board] brd:  the board for a given game of connectN
+    # PARAM [int] player:  the id of the selected player
+    # RETURN [int]: Number of points awarded to a board
     def utility(self, brd, player):
+        """ Returns the number of points for a given board """
+
         points = 0
 
         opponent = 2
@@ -115,29 +138,29 @@ class AlphaBetaAgent(agent.Agent):
         return succ
 
 
-    # Check if a line of identical tokens exists starting at (x,y) in direction (dx,dy)
+    # Evaluate line of tokens starting at (x,y) in direction (dx,dy)
     #
+    # PARAM [board] brd:  the board for a given game of connectN
     # PARAM [int] x:  the x coordinate of the starting cell
     # PARAM [int] y:  the y coordinate of the starting cell
     # PARAM [int] dx: the step in the x direction
     # PARAM [int] dy: the step in the y direction
-    # PARAM [int] p: player token number
-    # RETURN [int]: True if n tokens of the same type have been found, False otherwise EDIT
+    # PARAM [int] p: player token id number
+    # PARAM [int] o: opponent token id number
+    # RETURN [int]: Number of points awarded to a given line
     def connectNCheck(self, brd, x, y, dx, dy, n, p, o):
-        """ """
+        """ Returns points awarded to line of n length for a given direction """
+
         # Avoid out-of-bounds errors
         if ((x + (n-1) * dx >= brd.w) or
             (y + (n-1) * dy < 0) or (y + (n-1) * dy >= brd.h)):
             return 0
 
-        # Get token at (x,y)
-        # print(str(x)+ ' ' + str(y))
-
         playerTokens = 0
         opponentTokens = 0
         spaceTokens = 0
 
-        # piece  = brd.board[y][x]
+        # Iterate through line of tokens in given direction and count number of labeled tokens
         for i in range(0, n):
             target = brd.board[y + i*dy][x + i*dx]
             if target == p:
@@ -148,31 +171,32 @@ class AlphaBetaAgent(agent.Agent):
                 spaceTokens += 1
         
         # Evaluate line
-        if spaceTokens == n:
+        if spaceTokens == n: # all spaces
             return 0
-        elif playerTokens == n:
+        elif playerTokens == n: # all player tokens
             return (playerTokens**n)**n
-        elif opponentTokens == n:
+        elif opponentTokens == n: # all opponent tokens
             return ((opponentTokens**n)**n) * -1
-        elif (playerTokens > 0) and (opponentTokens > 0):
+        elif (playerTokens > 0) and (opponentTokens > 0): # some player and opponent tokens
             return 0
-        elif (playerTokens > 0) and (opponentTokens == 0):
+        elif (playerTokens > 0) and (opponentTokens == 0): # some player tokens and space
             return playerTokens**n
-        elif (opponentTokens > 0) and (playerTokens == 0):
+        elif (opponentTokens > 0) and (playerTokens == 0): # some opponent tokens and space 
             return (opponentTokens**n)*-1
         else:
             return 0
 
-    # Check if a line of identical tokens exists starting at (x,y) in any direction
+    # Evaluate lines within n length starting at (x,y) in any direction
     #
-    # PARAM [board] board: the board for a given game
+    # PARAM [board] brd: the board for a given game of connectN
     # PARAM [int] x: the x coordinate of the starting cell
     # PARAM [int] y: the y coordinate of the starting cell
     # PARAM [int] n: the number of tokens in a row
-    # PARAM [int] p: player token number
-    # RETURN [Bool]: True if n tokens of the same type have been found, False otherwise EDIT
+    # PARAM [int] p: player token id number
+    # PARAM [int] o: opponent token id number
+    # RETURN [int]: Number of points awarded to a designated position
     def checkLines(self, brd, x, y, n, p, o):
-        """ """
+        """ Returns the number of points awarded in each direction for a given point on a given board"""
 
         points = 0
         points += self.connectNCheck(brd, x, y, 1, 0, n, p, o) # Horizontal
@@ -180,6 +204,7 @@ class AlphaBetaAgent(agent.Agent):
         points += self.connectNCheck(brd, x, y, 1, 1, n, p, o) # Diagonal up
         points += self.connectNCheck(brd, x, y, 1, -1, n, p, o) # Diagonal down
     
+        # Value middle position for first player, first turn
         if p == brd.board[0][int(brd.w/2)]:
             points += 1
 
