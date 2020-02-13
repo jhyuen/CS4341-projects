@@ -210,4 +210,4 @@ class AlphaBetaAgent(agent.Agent):
 
         return points
             
-THE_AGENT = AlphaBetaAgent("HaoMei", 4)
+THE_AGENT = AlphaBetaAgent("Group 18", 4)
