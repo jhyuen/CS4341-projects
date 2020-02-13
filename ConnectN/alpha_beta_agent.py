@@ -29,23 +29,23 @@ class AlphaBetaAgent(agent.Agent):
         """Search for the best move (choice of column for the token)"""
         # Make decision
         curdepth = 0
-        v, a = self.maxval(brd, -math.inf, math.inf, curdepth)
+        v, a = self.maxval(brd, -math.inf, math.inf, curdepth, brd.player)
         print("Points: " + str(v))
         print("Action: " + str(a))
 
         return a
 
     # Return maximum utility across all nodes
-    def maxval(self, brd, alpha, beta, curdepth):              
+    def maxval(self, brd, alpha, beta, curdepth, player):
         v = -math.inf
         action = -1
         brdactlist = self.get_successors(brd)
 
         if curdepth == self.max_depth or len(brdactlist) == 0:
-            return self.utility(brd), -1 
+            return self.utility(brd, player), -1
 
         for i in brdactlist:
-            node_v, a = self.minval(i[0], alpha, beta, curdepth+1)
+            node_v, a = self.minval(i[0], alpha, beta, curdepth+1, player)
             if node_v > v:
                 v = node_v
                 action = i[1]
@@ -55,16 +55,16 @@ class AlphaBetaAgent(agent.Agent):
         return v, action
 
     # Return minimum value across all nodes
-    def minval(self, brd, alpha, beta, curdepth):
+    def minval(self, brd, alpha, beta, curdepth, player):
         v = math.inf
         action = -1
         brdactlist = self.get_successors(brd)
 
         if curdepth == self.max_depth or len(brdactlist) == 0:
-            return self.utility(brd), -1 
+            return self.utility(brd, player), -1
 
         for i in brdactlist:
-            node_v, a = self.maxval(i[0], alpha, beta, curdepth+1)
+            node_v, a = self.maxval(i[0], alpha, beta, curdepth+1, player)
             if node_v < v:
                 v = node_v
                 action = i[1]
@@ -74,14 +74,12 @@ class AlphaBetaAgent(agent.Agent):
         return v, action
 
     # Returns utility of a given board
-    def utility(self, brd):
+    def utility(self, brd, player):
         points = 0
 
-        player = 1
         opponent = 2
 
         if brd.player == 2:
-            player = brd.player
             opponent = 1
 
         for r in range(brd.h):
