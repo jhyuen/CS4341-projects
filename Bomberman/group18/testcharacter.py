@@ -1,5 +1,6 @@
 # This is necessary to find the main code
 import sys
+import numpy as np
 sys.path.insert(0, '../bomberman')
 # Import necessary stuff
 from entity import CharacterEntity
@@ -9,4 +10,24 @@ class TestCharacter(CharacterEntity):
 
     def do(self, wrld):
         # Your code here
+        pass
+
+    def policy_iteration(self, mdp):
+        utilityVec = np.zeros(9)  # vector of zeros
+        policyVec = np.zeros(9)  # vector of random policy
+
+        unchanged = True
+        while unchanged:
+            utilityVec = self.policy_eval()
+            unchanged = True
+            for s in mdp.S:
+                if ():
+                    policyVec = 0
+                    unchanged = False
+
+        return policyVec
+
+
+
+    def policy_eval(self):
         pass
