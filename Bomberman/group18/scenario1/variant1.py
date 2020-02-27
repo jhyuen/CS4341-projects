@@ -33,7 +33,7 @@ g.add_character(InteractiveCharacter("me", # name
 ))
 
 # Run!
-
+#
 # Use this if you want to press ENTER to continue at each step
 # g.go(0)
 
