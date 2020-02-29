@@ -9,7 +9,10 @@ from colorama import Fore, Back
 class TestCharacter(CharacterEntity):
 
     def do(self, wrld):
-        # Your code here
+        
+        for x in range(0,wrld.width()):
+            for y in range(0,wrld.height()):
+                print(str(x) + ',' + str(y))
         pass
 
     def policy_iteration(self, mdp):
@@ -31,7 +34,7 @@ class TestCharacter(CharacterEntity):
 
     def policy_eval(self):
         pass
-
+    
 
 class mdp():
     def __init__(self,states, actions, transition_model):
