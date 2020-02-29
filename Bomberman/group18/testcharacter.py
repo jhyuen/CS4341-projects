@@ -10,9 +10,58 @@ class TestCharacter(CharacterEntity):
 
     def do(self, wrld):
         
+        dx, dy = 0, 0
+        bomb = 0
+        states = []
+        transition_model = []
         for x in range(0,wrld.width()):
             for y in range(0,wrld.height()):
-                print(str(x) + ',' + str(y))
+                if wrld.empty_at(x,y):
+                    states.append(0)
+                elif wrld.exit_at(x, y):
+                    states.append(1)
+                elif wrld.wall_at(x,y):
+                    states.append(2)
+                elif wrld.bomb_at(x,y):
+                    states.append(3)
+                elif wrld.explosion_at(x,y):
+                    states.append(4)
+                elif wrld.monsters_at(x,y):
+                    states.append(5)
+                elif wrld.characters_at(x,y):
+                    states.append(6)
+
+                transition_model.append(1)
+
+        actions = [1,1,1,1,1,1,1,1,1]
+        if actions[0]:
+            dx -= 1
+            dy += 1
+        elif actions[1]:
+            dy += 1
+        elif actions[2]:
+            dx += 1
+            dy += 1
+        elif actions[3]:
+            dx -= 1
+        elif actions[5]:
+            dx += 1
+        elif actions[6]:
+            dx -= 1
+            dy -= 1
+        elif actions[7]:
+            dy -= 1
+        elif actions[8]:
+            dx += 1
+            dy -= 1
+        else:
+            bomb = 1
+
+        self.move(dx, dy)
+        if bomb:
+            self.place_bomb()
+
+        markovBaby = mdp(states,actions,transition_model)
         pass
 
     def policy_iteration(self, mdp):
@@ -42,20 +91,10 @@ class TestCharacter(CharacterEntity):
                     policy_vec[s] = action
                     unchanged = False
 
-<<<<<<< HEAD
-        return policyVec
-
-
-
-    def policy_eval(self):
-        pass
-    
-=======
         return policy_vec
 
     def policy_eval(self, utility_vec, mdp):
         return utility_vec
->>>>>>> 7eeac3cea444cee0b1c919858e237b3d33710b4f
 
 class mdp():
     def __init__(self,states, actions, transition_model):
