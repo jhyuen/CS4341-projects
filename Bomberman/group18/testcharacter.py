@@ -39,13 +39,13 @@ class mdp():
         self.actions = actions
         self.transition_model = transition_model
 
-    def get_states():
+    def get_states(self):
         return self.states
 
-    def get_actions():
+    def get_actions(self):
         return self.actions
 
-    def get_transition_model():
+    def get_transition_model(self):
         return self.transition_model
 
 
