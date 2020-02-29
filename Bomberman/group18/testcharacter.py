@@ -13,21 +13,34 @@ class TestCharacter(CharacterEntity):
         pass
 
     def policy_iteration(self, mdp):
-        utilityVec = np.zeros(9)  # vector of zeros
-        policyVec = np.zeros(9)  # vector of random policy
+        utility_vec = np.zeros(9)  # vector of zeros
+        policy_vec = np.zeros(9)  # vector of random policy
 
         unchanged = True
         while unchanged:
-            utilityVec = self.policy_eval()
+            utility_vec = self.policy_eval(utility_vec, mdp)
             unchanged = True
-            for s in mdp.S:
-                if ():
-                    policyVec = 0
+            for s in range(mdp.S):
+                # if probability of each action is 1
+                top = utility_vec[s - width]
+                bottom = utility_vec[s + width]
+                right = utility_vec[s + 1]
+                left = utility_vec[s - 1]
+                top_right = utility_vec[s - width + 1]
+                top_left = utility_vec[s - width - 1]
+                bottom_right = utility_vec[s + width + 1]
+                bottom_left = utility_vec[s + width - 1]
+
+                next_states = np.array([top_left, top, top_right, left, right, bottom_left, bottom, bottom_right])
+                max_utility = np.amax(next_states)
+                action = np.argmax(next_states)
+
+                if max_utility > utility_vec[next_states[policy_vec[s]]]:
+                    policy_vec[s] = action
                     unchanged = False
 
-        return policyVec
+        return policy_vec
 
+    def policy_eval(self, utility_vec, mdp):
+        return utility_vec
 
-
-    def policy_eval(self):
-        pass
