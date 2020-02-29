@@ -44,3 +44,23 @@ class TestCharacter(CharacterEntity):
     def policy_eval(self, utility_vec, mdp):
         return utility_vec
 
+class mdp():
+    def __init__(self,states, actions, transition_model):
+        self.states = states
+        self.actions = actions
+        self.transition_model = transition_model
+
+    def get_states(self):
+        return self.states
+
+    def get_actions(self):
+        return self.actions
+
+    def get_transition_model(self):
+        return self.transition_model
+
+
+
+
+
+
