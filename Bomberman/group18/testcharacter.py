@@ -31,3 +31,25 @@ class TestCharacter(CharacterEntity):
 
     def policy_eval(self):
         pass
+
+
+class mdp():
+    def __init__(self,states, actions, transition_model):
+        self.states = states
+        self.actions = actions
+        self.transition_model = transition_model
+
+    def get_states():
+        return self.states
+
+    def get_actions():
+        return self.actions
+
+    def get_transition_model():
+        return self.transition_model
+
+
+
+
+    
+
