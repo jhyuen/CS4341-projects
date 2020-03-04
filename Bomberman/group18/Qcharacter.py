@@ -11,8 +11,13 @@ class QCharacter(CharacterEntity):
     # TODO: move all code into TestCharacter
 
     def do(self, wrld):
+        # read w from file
+        f = open('../variant1.txt', 'r')
+        w = list(map(int, f.read().split(" ")))
+        f.close()
+
         # stores optimal action list
-        actlist = self.optiact(wrld)
+        actlist = self.optiact(wrld, w)
 
         self.move(actlist[0], actlist[1])
         if actlist[2]:
@@ -23,13 +28,19 @@ class QCharacter(CharacterEntity):
         # calculate rewards for the action
         # TODO: figure out what wrld.me() does and what role the character plays
         r = self.reward(wrld.me(self), actlist[4], actlist[5])
-        self.Qlearning(wrld, actlist[0], actlist[1], actlist[2], actlist[4], r)
+
+        new_w = self.Qlearning(wrld, actlist[0], actlist[1], actlist[2], actlist[4], r, w)
+
+        # write to file
+        f = open("variant1.txt", "w")
+        f.write(' '.join(str(x) for x in new_w))
+        f.close()
         pass
 
 
     # given a world configuration, returns a list for optimal actions and highest Q value
     # in order of [dx, dy, bomb?, Q, newwrld, events]
-    def optiact(self, wrld):
+    def optiact(self, wrld, w):
         #
         # Get first character in the world
         m = next(iter(wrld.characters().values()))
@@ -64,7 +75,7 @@ class QCharacter(CharacterEntity):
                                     # Get new world
                                     (newwrld, events) = wrld.next()
                                     # calculate approximate Q value for the new world state
-                                    newQ = self.approxQ(newwrld, events, dx, dy, bomb)
+                                    newQ = self.approxQ(newwrld, events, dx, dy, bomb, w)
                                     # if new Q value is greater than previous, update optimal actions
                                     if newQ > Q:
                                         action[0] = dx
@@ -84,17 +95,20 @@ class QCharacter(CharacterEntity):
 
     # returns approximate Q value given a world state and the actions the character took
     # TODO: finish calculating approximate Q value
-    def approxQ(self, wrld, events, dx, dy, bomb):
+    def approxQ(self, wrld, events, dx, dy, bomb, w):
         # Q = w1*f1(s, a) + ...
         Q = 0
         return Q
 
     # updates w values after each action
-    def Qlearning(self, wrld, dx, dy, bomb, newwrld, r):
+    def Qlearning(self, wrld, dx, dy, bomb, newwrld, r, w):
         alpha = 0.95
         gamma = 0.9
 
-        delta = (r + gamma * self.optiact(newwrld)[3]) - self.approxQ(wrld, events, dx, dy, bomb)
-        # TODO: update w value
-        pass
+        # update w values
+        delta = (r + gamma * self.optiact(newwrld, w)[3]) - self.approxQ(wrld, events, dx, dy, bomb, w)
+        new_w = []
+        for i in range(len(w)):
+            new_w[i] = w[i] + alpha * delta * f
+        return new_w
 
