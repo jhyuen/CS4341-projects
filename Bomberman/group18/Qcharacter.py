@@ -10,9 +10,14 @@ from entity import CharacterEntity
 class QCharacter(CharacterEntity):
     # TODO: move all code into TestCharacter
 
+    filename = ""
+
+    def setFilename(self, filename):
+        self.filename = filename
+
     def do(self, wrld):
         # read w from file
-        f = open('../variant1.txt', 'r')
+        f = open(self.filename, 'r')
         w = list(map(int, f.read().split(" ")))
         f.close()
 
