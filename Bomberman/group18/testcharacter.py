@@ -286,7 +286,7 @@ class TestCharacter(CharacterEntity):
             
             return 1/distance
         else:
-            return 0}
+            return 0
 
     #
     def distance_to_closest_character(self, world, characters):

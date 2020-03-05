@@ -8,8 +8,6 @@ from colorama import Fore, Back
 class InteractiveCharacter(CharacterEntity):
 
     def do(self, wrld):
-        print(self.x)
-        print(self.y)
         # Commands
         dx, dy = 0, 0
         bomb = False
