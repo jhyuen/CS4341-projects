@@ -18,7 +18,7 @@ class QCharacter(CharacterEntity):
     def do(self, wrld):
         # read w from file
         f = open(self.filename, 'r')
-        w = list(map(int, f.read().split(" ")))
+        w = list(map(float, f.read().split(" ")))
         f.close()
 
         # stores optimal action list
@@ -37,7 +37,7 @@ class QCharacter(CharacterEntity):
         new_w = self.Qlearning(wrld, actlist[0], actlist[1], actlist[2], actlist[4], r, w)
 
         # write to file
-        f = open("variant1.txt", "w")
+        f = open(self.filename, "w")
         f.write(' '.join(str(x) for x in new_w))
         f.close()
         pass
