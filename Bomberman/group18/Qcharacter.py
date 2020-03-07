@@ -214,6 +214,20 @@ class QCharacter(CharacterEntity):
         return new_w
 
     # Shortest distance to exit
+<<<<<<< HEAD
+    def distance_to_exit(self, world, exit_location, grid):
+        player = world.me(self)
+        distance = 0
+        vertical_diff = abs(exit_location[1] -  player.y)
+        horizontal_diff = abs(exit_location[0] - player.x)
+        distance = max(vertical_diff, horizontal_diff)
+        # print("Player: ", player.y, player.x)
+        # print("Exit: ", exit_location[1], exit_location[0])
+        # distance = len(astar(grid, (player.y, player.x), (exit_location[1], exit_location[0])))
+        # print("Distance: ", distance)
+
+        return 1/(distance+1)
+=======
     # def distance_to_exit(self, world, exit_location, grid):
     #     player = world.me(self)
     #     distance = 0
@@ -226,6 +240,7 @@ class QCharacter(CharacterEntity):
     #     print("Distance: ", distance)
     #
     #     return 1/distance
+>>>>>>> 08eb8d0e9c5159c65963fba645d8009ef25914d7
 
     #
     def distance_to_closest_monster(self, world, monsters):
@@ -241,7 +256,7 @@ class QCharacter(CharacterEntity):
                 if diff < distance:
                     distance = diff
             
-            return 1/distance
+            return 1/(distance+1)
         else:
             return 0
 
@@ -295,14 +310,14 @@ class QCharacter(CharacterEntity):
             distance = max(world.width(), world.height())*2
             
             for bomb in bombs:
-                vertical_diff = abs(player.y - bomb.y)
-                horizontal_diff = abs(player.x - bomb.x)
+                vertical_diff = abs(player.y - bomb[1])
+                horizontal_diff = abs(player.x - bomb[0])
                 diff = max(vertical_diff, horizontal_diff)
 
                 if diff < distance:
                     distance = diff
             
-            return 1/distance
+            return 1/(distance+1)
         else:
             return 0
         
@@ -320,7 +335,7 @@ class QCharacter(CharacterEntity):
                 if diff < distance:
                     distance = diff
             
-            return 1/distance
+            return 1/(distance+1)
         else:
             return 0
 
@@ -338,7 +353,7 @@ class QCharacter(CharacterEntity):
                 if diff < distance:
                     distance = diff
             
-            return 1/distance
+            return 1/(distance+1)
         else:
             return 0
 
@@ -350,14 +365,14 @@ class QCharacter(CharacterEntity):
             
             for character in characters:
                 if character != player:
-                    vertical_diff = abs(player.y - character.y)
-                    horizontal_diff = abs(player.x - character.x)
+                    vertical_diff = abs(player.y - character[1])
+                    horizontal_diff = abs(player.x - character[0])
                     diff = max(vertical_diff, horizontal_diff)
 
                     if diff < distance:
                         distance = diff
             
-            return 1/distance
+            return 1/(distance+1)
         else:
             return 0
 
