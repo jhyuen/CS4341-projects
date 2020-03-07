@@ -33,11 +33,16 @@ class QCharacter(CharacterEntity):
         player = wrld.me(self)
         (newwrld, events) = wrld.next()
         grid = self.get_world_grid(newwrld)
-        exit_dis = len(astar(grid, (player.y, player.x), (next_exit_row, next_exit_col)))
+        path = astar(grid, (player.y, player.x), (next_exit_row, next_exit_col))
+        exit_dis = len(path)
+        print(path)
+        print("Exit Distance: ", exit_dis)
 
         # stores optimal action list
-        actlist = self.optiact(wrld, w, exit_dis)
+        actlist = self.optiact(wrld, w, exit_dis, path)
 
+        print(actlist[0],  ", ", actlist[1])
+        print(actlist[2])
         self.move(actlist[0], actlist[1])
         if actlist[2]:
             self.place_bomb()
@@ -47,7 +52,7 @@ class QCharacter(CharacterEntity):
         # calculate rewards for the action
         r = self.reward(actlist[4], actlist[5])
 
-        new_w = self.Qlearning(wrld, actlist[0], actlist[1], actlist[2], actlist[4], r, w, exit_dis)
+        new_w = self.Qlearning(wrld, actlist[0], actlist[1], actlist[2], actlist[4], r, w, exit_dis, path)
 
         # write to file
         f = open(self.filename, "w")
@@ -58,7 +63,7 @@ class QCharacter(CharacterEntity):
 
     # given a world configuration, returns a list for optimal actions and highest Q value
     # in order of [dx, dy, bomb?, Q, newwrld, events]
-    def optiact(self, wrld, w, exit_dis):
+    def optiact(self, wrld, w, exit_dis, path):
         #
         # Get first character in the world
         m = wrld.me(self)
@@ -92,7 +97,7 @@ class QCharacter(CharacterEntity):
                                 (newwrld, events) = wrld.next()
 
                                 # calculate approximate Q value for the new world state
-                                newQ = self.approxQ(newwrld, dx, dy, False, w, exit_dis)
+                                newQ = self.approxQ(newwrld, dx, dy, False, w, exit_dis, path)
                                 # if new Q value is greater than previous, update optimal actions
                                 if newQ[0] > Q:
                                     action[0] = dx
@@ -108,7 +113,7 @@ class QCharacter(CharacterEntity):
                         (newwrld, events) = wrld.next()
 
                         # calculate approximate Q value for the new world state
-                        newQ = self.approxQ(newwrld, dx, dy, True, w, exit_dis)
+                        newQ = self.approxQ(newwrld, dx, dy, True, w, exit_dis, path)
                         # if new Q value is greater than previous, update optimal actions
                         if newQ[0] > Q:
                             action[0] = dx
@@ -151,7 +156,7 @@ class QCharacter(CharacterEntity):
 
     # returns approximate Q value given a world state and the actions the character took
     # TODO: finish calculating approximate Q value
-    def approxQ(self, wrld, dx, dy, bomb, w, exit_dis):
+    def approxQ(self, wrld, dx, dy, bomb, w, exit_dis, path):
         # Q = w1*f1(s, a) + ...
 
         f = []
@@ -182,9 +187,7 @@ class QCharacter(CharacterEntity):
                 elif wrld.characters_at(col, row):
                     next_characters.append((col, row))
 
-        grid = self.get_world_grid(wrld).astype(int)
-
-        f.append(1/exit_dis)
+        f.append(self.distance_to_path(wrld, exit_dis, path))
         f.append(self.distance_to_closest_monster(wrld, next_monsters))
         f.append(self.angle_between_closest_monster_and_exit(wrld, (next_exit_col, next_exit_row), next_monsters))
         f.append(self.timer_of_closest_bomb(wrld, next_bombs))
@@ -200,47 +203,32 @@ class QCharacter(CharacterEntity):
         return Q, f
 
     # updates w values after each action
-    def Qlearning(self, wrld, dx, dy, bomb, newwrld, r, w, exit_dis):
+    def Qlearning(self, wrld, dx, dy, bomb, newwrld, r, w, exit_dis, path):
         alpha = 0.95
         gamma = 0.9
 
-        Q, f = self.approxQ(wrld, dx, dy, bomb, w, exit_dis)
+        Q, f = self.approxQ(wrld, dx, dy, bomb, w, exit_dis, path)
 
+        print("Reward: ", r)
         # update w values
-        delta = (r + gamma * self.optiact(newwrld, w, exit_dis)[3]) - Q
+        delta = (r + gamma * self.optiact(newwrld, w, exit_dis, path)[3]) - Q
+        print("delta: ", delta)
         new_w = np.zeros(len(w))
         for i in range(len(w)):
             new_w[i] = w[i] + alpha * delta * f[i]
         return new_w
 
     # Shortest distance to exit
-<<<<<<< HEAD
-    def distance_to_exit(self, world, exit_location, grid):
+    def distance_to_path(self, world, exit_dis, path):
         player = world.me(self)
-        distance = 0
-        vertical_diff = abs(exit_location[1] -  player.y)
-        horizontal_diff = abs(exit_location[0] - player.x)
-        distance = max(vertical_diff, horizontal_diff)
-        # print("Player: ", player.y, player.x)
-        # print("Exit: ", exit_location[1], exit_location[0])
-        # distance = len(astar(grid, (player.y, player.x), (exit_location[1], exit_location[0])))
-        # print("Distance: ", distance)
+        dis_from_path_x = 0
+        dis_from_path_y = 0
 
-        return 1/(distance+1)
-=======
-    # def distance_to_exit(self, world, exit_location, grid):
-    #     player = world.me(self)
-    #     distance = 0
-    #     # vertical_diff = abs(exit_location[1] -  player.y)
-    #     # horizontal_diff = abs(exit_location[0] - player.x)
-    #     # distance = max(vertical_diff, horizontal_diff)
-    #     print("Player: ", player.y, player.x)
-    #     print("Exit: ", exit_location[1], exit_location[0])
-    #     distance = len(astar(grid, (player.y, player.x), (exit_location[1], exit_location[0])))
-    #     print("Distance: ", distance)
-    #
-    #     return 1/distance
->>>>>>> 08eb8d0e9c5159c65963fba645d8009ef25914d7
+        for coord in path:
+            dis_from_path_y = min(abs(player.y - coord[0]), dis_from_path_y)
+            dis_from_path_x = min(abs(player.x - coord[1]), dis_from_path_x)
+
+        return 1/(exit_dis + dis_from_path_x + dis_from_path_y + 1)
 
     #
     def distance_to_closest_monster(self, world, monsters):
