@@ -186,13 +186,16 @@ class QCharacter(CharacterEntity):
         f.append(self.timer_of_closest_bomb(wrld, next_bombs))
         f.append(self.distance_to_closest_bomb(wrld, next_bombs))
         f.append(self.distance_to_explosion(wrld, next_explosions))
-        f.append(self.distance_to_closest_wall(wrld, next_walls))
+        # f.append(self.distance_to_closest_wall(wrld, next_walls))
         f.append(self.distance_to_closest_character(wrld, next_characters))
         
         Q = 0
         for i in range(0, len(w)):
             Q += w[i]*f[i]
 
+        print("dx, dy: ", dx, dy)
+        print(Q)
+        print(f)
         return Q, f
 
     # updates w values after each action
@@ -213,14 +216,17 @@ class QCharacter(CharacterEntity):
 
     # Shortest distance to exit
 
-    def distance_to_exit(self, world, exit_location, grid):
+    def distance_to_path(self, world, exit_dis, path):
         player = world.me(self)
-        dis_from_path_x = 0
-        dis_from_path_y = 0
+        dis_from_path_x = math.inf
+        dis_from_path_y = math.inf
 
         for coord in path:
             dis_from_path_y = min(abs(player.y - coord[0]), dis_from_path_y)
             dis_from_path_x = min(abs(player.x - coord[1]), dis_from_path_x)
+
+        print("Player: ", player.y, player.x)
+        print("path dis: ", dis_from_path_y, dis_from_path_x)
 
         return 1/(exit_dis + dis_from_path_x + dis_from_path_y + 1)
 
@@ -472,20 +478,3 @@ def astar(maze, start, end):
             open_list.append(child)
 
 
-# maze = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-#         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-#         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-#
-# start = (0, 0)
-# end = (7, 6)
-#
-# path = astar(maze, start, end)
-# print(path)
-# print(len(path))
