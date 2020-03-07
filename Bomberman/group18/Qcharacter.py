@@ -21,6 +21,11 @@ class QCharacter(CharacterEntity):
         w = list(map(float, f.read().split(" ")))
         f.close()
 
+        # grid = self.get_world_grid(wrld)
+        # path = astar(grid, (0, 0), (18, 7))
+        # print(path)
+        # print(len(path))
+
         # stores optimal action list
         actlist = self.optiact(wrld, w)
 
@@ -122,30 +127,32 @@ class QCharacter(CharacterEntity):
                     next_exit_row = row
                     next_exit_col = col
                 elif wrld.wall_at(col, row):
-                    next_walls.append((col,row))
+                    next_walls.append((col, row))
                 elif wrld.bomb_at(col, row):
-                    next_bombs.append((col,row))
+                    next_bombs.append((col, row))
                 elif wrld.explosion_at(col, row):
-                    next_explosions.append((col,row))
+                    next_explosions.append((col, row))
                 elif wrld.monsters_at(col, row):
-                    next_monsters.append((col,row))
+                    next_monsters.append((col, row))
                 elif wrld.characters_at(col, row):
-                    next_characters.append((col,row))
-        
-        f.append(self.distance_to_exit(wrld, (next_exit_col, next_exit_row)))
-        f.append(self.distance_to_closest_monster(wrld, next_monsters))
-        f.append(self.angle_between_closest_monster_and_exit(wrld, (next_exit_col,next_exit_row), next_monsters))
-        f.append(self.timer_of_closest_bomb(wrld, next_bombs))
-        f.append(self.distance_to_closest_bomb(wrld, next_bombs))
-        f.append(self.distance_to_explosion(wrld, next_explosions))
-        f.append(self.distance_to_closest_wall(wrld, next_walls))
-        f.append(self.distance_to_closest_character(wrld, next_characters))
+                    next_characters.append((col, row))
+
+        grid = self.get_world_grid(wrld).astype(int)
+
+        f.append(self.distance_to_exit(wrld, (next_exit_col, next_exit_row), grid))
+        f.append(self.distance_to_closest_monster(wrld, next_monsters, grid))
+        f.append(self.angle_between_closest_monster_and_exit(wrld, (next_exit_col, next_exit_row), next_monsters, grid))
+        f.append(self.timer_of_closest_bomb(wrld, next_bombs, grid))
+        f.append(self.distance_to_closest_bomb(wrld, next_bombs, grid))
+        f.append(self.distance_to_explosion(wrld, next_explosions, grid))
+        f.append(self.distance_to_closest_wall(wrld, next_walls, grid))
+        f.append(self.distance_to_closest_character(wrld, next_characters, grid))
         
         Q = 0
-        for i in range(0,len(w)):
+        for i in range(0, len(w)):
             Q += w[i]*f[i]
 
-        return (Q,f)
+        return Q, f
 
     # updates w values after each action
     def Qlearning(self, wrld, dx, dy, bomb, newwrld, r, w):
@@ -161,25 +168,32 @@ class QCharacter(CharacterEntity):
             new_w[i] = w[i] + alpha * delta * f[i]
         return new_w
 
-    # Shortest distance to exit - does not take walls into account
-    def distance_to_exit(self, world, exit_location):
+    # Shortest distance to exit
+    def distance_to_exit(self, world, exit_location, grid):
         player = world.me(self)
         distance = 0
         vertical_diff = abs(exit_location[1] -  player.y)
         horizontal_diff = abs(exit_location[0] - player.x)
-        distance = max(vertical_diff,horizontal_diff)
+        distance = max(vertical_diff, horizontal_diff)
+        # print("Player: ", player.y, player.x)
+        # print("Exit: ", exit_location[1], exit_location[0])
+        # distance = len(astar(grid, (player.y, player.x), (exit_location[1], exit_location[0])))
+        # print("Distance: ", distance)
+
         return 1/distance
 
     #
-    def distance_to_closest_monster(self, world, monsters):
+    def distance_to_closest_monster(self, world, monsters, grid):
         if monsters:
             player = world.me(self)
-            distance = max(world.width(),world.height())*2
+            distance = max(world.width(), world.height())*2
             
             for monster in monsters:
                 vertical_diff = abs(player.y - monster[1])
                 horizontal_diff = abs(player.x - monster[0])
-                diff = max(vertical_diff,horizontal_diff)
+                diff = max(vertical_diff, horizontal_diff)
+
+                # diff = len(astar(grid, (player.y, player.x), (monster[1], monster[0])))
                 if diff < distance:
                     distance = diff
             
@@ -188,22 +202,24 @@ class QCharacter(CharacterEntity):
             return 0
 
     #
-    def angle_between_closest_monster_and_exit(self, world, exit_location, monsters):
+    def angle_between_closest_monster_and_exit(self, world, exit_location, monsters, grid):
         if monsters:
             player = world.me(self)
-            distance = max(world.width(),world.height())*2
-            closest_monster = (world.height(),world.width()) 
+            distance = max(world.width(), world.height())*2
+            closest_monster = (world.height(), world.width())
 
             for monster in monsters:
                 vertical_diff = abs(player.y - monster[1])
                 horizontal_diff = abs(player.x - monster[0])
-                diff = max(vertical_diff,horizontal_diff)
+                diff = max(vertical_diff, horizontal_diff)
+
+                # diff = len(astar(grid, (player.y, player.x), (monster[1], monster[0])))
                 if diff < distance:
                     distance = diff
                     closest_monster = (monster[1], monster[0])
 
-            player_to_monster = np.array([closest_monster[0]-player.x,closest_monster[1]-player.y])
-            player_to_exit = np.array([exit_location[0]-player.x,exit_location[1]-player.y])
+            player_to_monster = np.array([closest_monster[0]-player.x, closest_monster[1]-player.y])
+            player_to_exit = np.array([exit_location[0]-player.x, exit_location[1]-player.y])
             dot_product = np.dot(player_to_monster, player_to_exit)
             return 1/abs(math.degrees(math.acos(dot_product/((np.linalg.norm(player_to_monster)*(np.linalg.norm(player_to_exit)))))))
 
@@ -211,33 +227,38 @@ class QCharacter(CharacterEntity):
             return 0
 
     #
-    def timer_of_closest_bomb(self, world, bombs):
+    def timer_of_closest_bomb(self, world, bombs, grid):
         if bombs:
             player = world.me(self)
-            distance = max(world.width(),world.height())*2
-            closest_bomb = (world.height(),world.width())
+            distance = max(world.width(), world.height())*2
+            closest_bomb = (world.height(), world.width())
             
             for bomb in bombs:
                 vertical_diff = abs(player.y - bomb.y)
                 horizontal_diff = abs(player.x - bomb.x)
-                diff = max(vertical_diff,horizontal_diff)
+                diff = max(vertical_diff, horizontal_diff)
+
+                # diff = len(astar(grid, (player.y, player.x), (bomb.y, bomb.x)))
+
                 if diff < distance:
                     distance = diff
                     closest_bomb = (bomb.y, bomb.x)
             
-            return world.bomb_at(closest_bomb[1],closest_bomb[0]).timer
+            return world.bomb_at(closest_bomb[1], closest_bomb[0]).timer
         else:
             return 0
     
-    def distance_to_closest_bomb(self, world, bombs):
+    def distance_to_closest_bomb(self, world, bombs, grid):
         if bombs:
             player = world.me(self)
-            distance = max(world.width(),world.height())*2
+            distance = max(world.width(), world.height())*2
             
             for bomb in bombs:
                 vertical_diff = abs(player.y - bomb.y)
                 horizontal_diff = abs(player.x - bomb.x)
-                diff = max(vertical_diff,horizontal_diff)
+                diff = max(vertical_diff, horizontal_diff)
+
+                # diff = len(astar(grid, (player.y, player.x), (bomb.y, bomb.x)))
                 if diff < distance:
                     distance = diff
             
@@ -246,15 +267,17 @@ class QCharacter(CharacterEntity):
             return 0
         
     #
-    def distance_to_explosion(self, world, explosions):
+    def distance_to_explosion(self, world, explosions, grid):
         if explosions:
             player = world.me(self)
-            distance = max(world.width(),world.height())*2
+            distance = max(world.width(), world.height())*2
             
             for explosion in explosions:
                 vertical_diff = abs(player.y - explosion[1])
                 horizontal_diff = abs(player.x - explosion[0])
-                diff = max(vertical_diff,horizontal_diff)
+                diff = max(vertical_diff, horizontal_diff)
+
+                # diff = len(astar(grid, (player.y, player.x), (explosion[1], explosion[0])))
                 if diff < distance:
                     distance = diff
             
@@ -263,15 +286,17 @@ class QCharacter(CharacterEntity):
             return 0
 
     #
-    def distance_to_closest_wall(self, world, walls):
+    def distance_to_closest_wall(self, world, walls, grid):
         if walls:
             player = world.me(self)
-            distance = max(world.width(),world.height())*2
+            distance = max(world.width(), world.height())*2
             
             for wall in walls:
                 vertical_diff = abs(player.y - wall[1])
                 horizontal_diff = abs(player.x - wall[0])
-                diff = max(vertical_diff,horizontal_diff)
+                diff = max(vertical_diff, horizontal_diff)
+
+                # diff = len(astar(grid, (player.y, player.x), (wall[1], wall[0])))
                 if diff < distance:
                     distance = diff
             
@@ -280,17 +305,19 @@ class QCharacter(CharacterEntity):
             return 0
 
     #
-    def distance_to_closest_character(self, world, characters):
+    def distance_to_closest_character(self, world, characters, grid):
         if len(characters) > 1:
             player = world.me(self)
-            distance = max(world.width(),world.height())*2
+            distance = max(world.width(), world.height())*2
             
             for character in characters:
                 if character != player:
                     vertical_diff = abs(player.y - character.y)
                     horizontal_diff = abs(player.x - character.x)
-                    diff = max(vertical_diff,horizontal_diff)
-                    
+                    diff = max(vertical_diff, horizontal_diff)
+
+                    # diff = len(astar(grid, (player.y, player.x), (character.y, character.x)))
+
                     if diff < distance:
                         distance = diff
             
@@ -298,6 +325,24 @@ class QCharacter(CharacterEntity):
         else:
             return 0
 
+    def get_world_grid(self, world):
+        # 2D world initially with zeros
+        world_grid = np.zeros((world.height(), world.width()))
+
+        # map out in 2D world grid where the walls are
+        for row in range(world.height()):
+            for col in range(world.width()):
+                if world.wall_at(col, row) or world.bomb_at(col, row) or world.explosion_at(col, row):
+                    world_grid[row][col] = 1
+                elif world.monsters_at(col, row) or world.characters_at(col, row):
+                    world_grid[row][col] = 1
+
+        return world_grid
+
+
+# A* Algorithm
+# Author: Nicholas Swift
+# code source: https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 class Node():
     """A node class for A* Pathfinding"""
 
@@ -311,8 +356,6 @@ class Node():
 
     def __eq__(self, other):
         return self.position == other.position
-
-
 def astar(maze, start, end):
     """Returns a list of tuples as a path from the given start to the given end in the given maze"""
 
@@ -396,21 +439,20 @@ def astar(maze, start, end):
             open_list.append(child)
 
 
-def main():
-
-    maze = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-
-    start = (0, 0)
-    end = (7, 6)
-
-    path = astar(maze, start, end)
-    print(path)
+# maze = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+#         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+#
+# start = (0, 0)
+# end = (7, 6)
+#
+# path = astar(maze, start, end)
+# print(path)
+# print(len(path))
