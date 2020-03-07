@@ -212,7 +212,8 @@ class QCharacter(CharacterEntity):
         return new_w
 
     # Shortest distance to exit
-    def distance_to_path(self, world, exit_dis, path):
+
+    def distance_to_exit(self, world, exit_location, grid):
         player = world.me(self)
         dis_from_path_x = 0
         dis_from_path_y = 0
@@ -223,7 +224,7 @@ class QCharacter(CharacterEntity):
 
         return 1/(exit_dis + dis_from_path_x + dis_from_path_y + 1)
 
-    #
+
     def distance_to_closest_monster(self, world, monsters):
         if monsters:
             player = world.me(self)
