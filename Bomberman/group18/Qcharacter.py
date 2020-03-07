@@ -5,6 +5,7 @@ import numpy as np
 sys.path.insert(0, '../bomberman')
 # Import necessary stuff
 from entity import CharacterEntity
+from events import Event
 
 
 class QCharacter(CharacterEntity):
@@ -36,8 +37,7 @@ class QCharacter(CharacterEntity):
         # TODO: check if the game has ended (done() function)
 
         # calculate rewards for the action
-        # TODO: figure out what wrld.me() does and what role the character plays
-        r = self.reward(wrld.me(self), actlist[4], actlist[5])
+        r = self.reward(actlist[4], actlist[5])
 
         new_w = self.Qlearning(wrld, actlist[0], actlist[1], actlist[2], actlist[4], r, w)
 
@@ -67,42 +67,70 @@ class QCharacter(CharacterEntity):
 
         # loop through whether or not placing the bomb
         # TODO: check what would happen if a bomb has already been placed by the character
-        for bomb in [True, False]:
-            # Loop through delta x
-            for dx in [-1, 0, 1]:
-                # Avoid out-of-bound indexing
-                if (m.x + dx >= 0) and (m.x + dx < wrld.width()):
-                    # Loop through delta y
-                    for dy in [-1, 0, 1]:
-                        # Make sure the character is moving
-                        if (dx != 0) or (dy != 0):
-                            # Avoid out-of-bound indexing
-                            if (m.y + dy >= 0) and (m.y + dy < wrld.height()):
-                                # No need to check impossible moves
-                                if not wrld.wall_at(m.x + dx, m.y + dy):
-                                    # Set move in wrld
-                                    m.move(dx, dy)
-                                    # Get new world
-                                    (newwrld, events) = wrld.next()
+        for dx in [-1, 0, 1]:
+            # Avoid out-of-bound indexing
+            if (m.x + dx >= 0) and (m.x + dx < wrld.width()):
+                # Loop through delta y
+                for dy in [-1, 0, 1]:
+                    # Make sure the character is moving
+                    if (dx != 0) or (dy != 0):
+                        # Avoid out-of-bound indexing
+                        if (m.y + dy >= 0) and (m.y + dy < wrld.height()):
+                            # No need to check impossible moves
+                            if not wrld.wall_at(m.x + dx, m.y + dy):
+                                # Set move in wrld
+                                m.move(dx, dy)
+                                # Get new world
+                                (newwrld, events) = wrld.next()
 
-                                    # calculate approximate Q value for the new world state
-                                    newQ = self.approxQ(newwrld, dx, dy, bomb, w)
-                                    # if new Q value is greater than previous, update optimal actions
-                                    if newQ[0] > Q:
-                                        action[0] = dx
-                                        action[1] = dy
-                                        action[2] = bomb
-                                        action[3] = newQ[0]
-                                        action[4] = newwrld
-                                        action[5] = events
+                                # calculate approximate Q value for the new world state
+                                newQ = self.approxQ(newwrld, dx, dy, False, w)
+                                # if new Q value is greater than previous, update optimal actions
+                                if newQ[0] > Q:
+                                    action[0] = dx
+                                    action[1] = dy
+                                    action[2] = False
+                                    action[3] = newQ[0]
+                                    action[4] = newwrld
+                                    action[5] = events
+                    elif dx == 0 and dy == 0:
+                        # Set move in wrld
+                        m.move(dx, dy)
+                        # Get new world
+                        (newwrld, events) = wrld.next()
+
+                        # calculate approximate Q value for the new world state
+                        newQ = self.approxQ(newwrld, dx, dy, True, w)
+                        # if new Q value is greater than previous, update optimal actions
+                        if newQ[0] > Q:
+                            action[0] = dx
+                            action[1] = dy
+                            action[2] = True
+                            action[3] = newQ[0]
+                            action[4] = newwrld
+                            action[5] = events
         return action
 
 
 
     # returns score for certain character given a world and events
     # TODO: finish defining reward function
-    def reward(self, char, wrld, events):
-        return 0
+    def reward(self, wrld, events):
+        r = 0
+
+        for e in events:
+            if e.tpe == Event.BOMB_HIT_WALL:
+                if e.character == self:
+                    r = r + 10
+            elif e.tpe == Event.BOMB_HIT_MONSTER:
+                if e.character == self:
+                    r = r + 50
+            elif e.tpe == Event.BOMB_HIT_CHARACTER:
+                if e.character == self:
+                    r = r + 100
+
+
+        return r
 
     # returns approximate Q value given a world state and the actions the character took
     # TODO: finish calculating approximate Q value
