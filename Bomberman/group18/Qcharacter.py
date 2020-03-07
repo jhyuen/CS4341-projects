@@ -101,7 +101,7 @@ class QCharacter(CharacterEntity):
                                     action[3] = newQ[0]
                                     action[4] = newwrld
                                     action[5] = events
-                    elif dx == 0 and dy == 0:
+                    if dx == 0 and dy == 0:
                         # Set move in wrld
                         m.move(dx, dy)
                         # Get new world
@@ -124,20 +124,29 @@ class QCharacter(CharacterEntity):
     # returns score for certain character given a world and events
     # TODO: finish defining reward function
     def reward(self, wrld, events):
-        r = 0
+        # r = 0
+        #
+        # for e in events:
+        #     if e.tpe == Event.BOMB_HIT_WALL:
+        #         if e.character == self:
+        #             r = r + 10
+        #     elif e.tpe == Event.BOMB_HIT_MONSTER:
+        #         if e.character == self:
+        #             r = r + 50
+        #     elif e.tpe == Event.BOMB_HIT_CHARACTER:
+        #         if e.character == self:
+        #             r = r + 100
+
+        # fetch score for self from world
+        r = wrld.scores[self.name]
 
         for e in events:
-            if e.tpe == Event.BOMB_HIT_WALL:
+            if e.tpe == Event.CHARACTER_KILLED_BY_MONSTER:
                 if e.character == self:
-                    r = r + 10
-            elif e.tpe == Event.BOMB_HIT_MONSTER:
-                if e.character == self:
-                    r = r + 50
+                    r = r - 500
             elif e.tpe == Event.BOMB_HIT_CHARACTER:
-                if e.character == self:
-                    r = r + 100
-
-
+                if e.other == self:
+                    r = r - 500
         return r
 
     # returns approximate Q value given a world state and the actions the character took
