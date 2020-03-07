@@ -137,7 +137,8 @@ class QCharacter(CharacterEntity):
                 if e.character == self:
                     r = r - 500
             elif e.tpe == Event.BOMB_HIT_CHARACTER:
-                if e.
+                if e.other == self:
+                    r = r - 500
         return r
 
     # returns approximate Q value given a world state and the actions the character took
