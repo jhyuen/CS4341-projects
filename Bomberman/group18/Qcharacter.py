@@ -41,8 +41,8 @@ class QCharacter(CharacterEntity):
         # stores optimal action list
         actlist = self.optiact(wrld, w, exit_dis, path)
 
-        print(actlist[0],  ", ", actlist[1])
-        print(actlist[2])
+        print("Action did take: ", actlist[0],  ", ", actlist[1])
+        print("Bomb?: ", actlist[2])
         self.move(actlist[0], actlist[1])
         if actlist[2]:
             self.place_bomb()
@@ -52,6 +52,7 @@ class QCharacter(CharacterEntity):
         # calculate rewards for the action
         r = self.reward(actlist[4], actlist[5])
 
+        print("Q Learning Values: ")
         new_w = self.Qlearning(wrld, actlist[0], actlist[1], actlist[2], actlist[4], r, w, exit_dis, path)
 
         # write to file
@@ -74,7 +75,7 @@ class QCharacter(CharacterEntity):
         # stores best move for the character, in order of [dx, dy, bomb?, maxQ, newwrld, events]
         # default value moves toward down right and places the bomb
         # TODO: reset default value or figure out better way to initialize values
-        action = [1, 1, True, Q, wrld.next(), []]
+        action = [0, 0, True, Q, wrld.next(), []]
 
         # Go through the possible 8-moves of the character and placing the bomb
         # TODO: check what would happen if a bomb has already been placed by the character
@@ -98,6 +99,7 @@ class QCharacter(CharacterEntity):
                                 newQ = self.approxQ(newwrld, dx, dy, False, w, exit_dis, path)
                                 # if new Q value is greater than previous, update optimal actions
                                 if newQ[0] > Q:
+                                    Q = newQ[0]
                                     action[0] = dx
                                     action[1] = dy
                                     action[2] = False
@@ -114,6 +116,7 @@ class QCharacter(CharacterEntity):
                         newQ = self.approxQ(newwrld, dx, dy, True, w, exit_dis, path)
                         # if new Q value is greater than previous, update optimal actions
                         if newQ[0] > Q:
+                            Q = newQ[0]
                             action[0] = dx
                             action[1] = dy
                             action[2] = True
@@ -194,7 +197,8 @@ class QCharacter(CharacterEntity):
             Q += w[i]*f[i]
 
         print("dx, dy: ", dx, dy)
-        print(Q)
+        print("Q Value: ", Q)
+        print("f values: ")
         print(f)
         return Q, f
 
