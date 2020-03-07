@@ -77,8 +77,6 @@ class QCharacter(CharacterEntity):
         action = [1, 1, True, Q, wrld.next(), []]
 
         # Go through the possible 8-moves of the character and placing the bomb
-
-        # loop through whether or not placing the bomb
         # TODO: check what would happen if a bomb has already been placed by the character
         for dx in [-1, 0, 1]:
             # Avoid out-of-bound indexing
@@ -129,24 +127,19 @@ class QCharacter(CharacterEntity):
     # returns score for certain character given a world and events
     # TODO: finish defining reward function
     def reward(self, wrld, events):
-        # r = 0
-        #
-        # for e in events:
-        #     if e.tpe == Event.BOMB_HIT_WALL:
-        #         if e.character == self:
-        #             r = r + 10
-        #     elif e.tpe == Event.BOMB_HIT_MONSTER:
-        #         if e.character == self:
-        #             r = r + 50
-        #     elif e.tpe == Event.BOMB_HIT_CHARACTER:
-        #         if e.character == self:
-        #             r = r + 100
-
-        # fetch score for self from world
-        r = wrld.scores[self.name]
+        r = 0
 
         for e in events:
-            if e.tpe == Event.CHARACTER_KILLED_BY_MONSTER:
+            if e.tpe == Event.BOMB_HIT_WALL:
+                if e.character == self:
+                    r = r + 10
+            elif e.tpe == Event.BOMB_HIT_MONSTER:
+                if e.character == self:
+                    r = r + 50
+            elif e.tpe == Event.BOMB_HIT_CHARACTER:
+                if e.character == self:
+                    r = r + 100
+            elif e.tpe == Event.CHARACTER_KILLED_BY_MONSTER:
                 if e.character == self:
                     r = r - 500
             elif e.tpe == Event.BOMB_HIT_CHARACTER:
