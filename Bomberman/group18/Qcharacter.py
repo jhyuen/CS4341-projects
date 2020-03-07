@@ -186,7 +186,7 @@ class QCharacter(CharacterEntity):
         f.append(self.timer_of_closest_bomb(wrld, next_bombs))
         f.append(self.distance_to_closest_bomb(wrld, next_bombs))
         f.append(self.distance_to_explosion(wrld, next_explosions))
-        # f.append(self.distance_to_closest_wall(wrld, next_walls))
+        f.append(self.distance_to_closest_wall(wrld, next_walls))
         f.append(self.distance_to_closest_character(wrld, next_characters))
         
         Q = 0
@@ -218,17 +218,15 @@ class QCharacter(CharacterEntity):
 
     def distance_to_path(self, world, exit_dis, path):
         player = world.me(self)
-        dis_from_path_x = math.inf
-        dis_from_path_y = math.inf
+        dis_from_path = math.inf
 
         for coord in path:
-            dis_from_path_y = min(abs(player.y - coord[0]), dis_from_path_y)
-            dis_from_path_x = min(abs(player.x - coord[1]), dis_from_path_x)
+            dis_from_path = min(abs(player.y - coord[0]) + abs(player.x - coord[1]), dis_from_path)
 
         print("Player: ", player.y, player.x)
-        print("path dis: ", dis_from_path_y, dis_from_path_x)
+        print("path dis: ", dis_from_path)
 
-        return 1/(exit_dis + dis_from_path_x + dis_from_path_y + 1)
+        return 1/(exit_dis + dis_from_path + 1)
 
 
     def distance_to_closest_monster(self, world, monsters):
