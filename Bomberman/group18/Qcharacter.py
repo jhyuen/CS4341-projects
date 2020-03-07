@@ -262,7 +262,7 @@ class QCharacter(CharacterEntity):
 
                 if diff < distance:
                     distance = diff
-                    closest_monster = (monster[1], monster[0])
+                    closest_monster = (monster[0], monster[1])
 
             player_to_monster = np.array([closest_monster[0]-player.x, closest_monster[1]-player.y])
             player_to_exit = np.array([exit_location[0]-player.x, exit_location[1]-player.y])
@@ -286,9 +286,9 @@ class QCharacter(CharacterEntity):
 
                 if diff < distance:
                     distance = diff
-                    closest_bomb = (bomb[1], bomb[0])
+                    closest_bomb = (bomb[0], bomb[1])
             
-            return world.bomb_at(closest_bomb[1], closest_bomb[0]).timer
+            return world.bomb_at(closest_bomb[0], closest_bomb[1]).timer
         else:
             return 0
     
