@@ -163,23 +163,17 @@ class QCharacter(CharacterEntity):
 
         for e in events:
             if e.tpe == Event.BOMB_HIT_WALL:
-                if e.character == self:
-                    r = r + 10
+                r = r + 10
             elif e.tpe == Event.BOMB_HIT_MONSTER:
-                if e.character == self:
-                    r = r + 50
+                r = r + 50
             elif e.tpe == Event.BOMB_HIT_CHARACTER:
-                if e.character == self:
-                    r = r + 100
-            elif e.tpe == Event.CHARACTER_KILLED_BY_MONSTER:
-                if e.character == self:
-                    r = r - 500
+                r = r + 100
+            elif e.tpe == Event.CHARACTER_KILLED_BY_MONSTER:    
+                r = r - 500
             elif e.tpe == Event.BOMB_HIT_CHARACTER:
-                if e.other == self:
-                    r = r - 500
+                r = r - 500
             elif e.tpe == Event.CHARACTER_FOUND_EXIT:
-                if e.character == self:
-                    r = r + 2 * wrld.time
+                r = r + 2 * wrld.time
 
         if not self.is_world_ended(events):
             r = 1 + 1
@@ -220,11 +214,11 @@ class QCharacter(CharacterEntity):
                     next_characters.append((col, row))
 
         f.append(self.distance_to_path(wrld, exit_dis, path))
-        #f.append(self.distance_to_closest_monster(wrld, next_monsters))
+        f.append(self.distance_to_closest_monster(wrld, next_monsters))
         #f.append(self.angle_between_closest_monster_and_exit(wrld, (next_exit_col, next_exit_row), next_monsters))
         #f.append(self.timer_of_closest_bomb(wrld, next_bombs))
-        #f.append(self.distance_to_closest_bomb(wrld, next_bombs))
-        #f.append(self.distance_to_explosion(wrld, next_explosions))
+        f.append(self.distance_to_closest_bomb(wrld, next_bombs))
+        f.append(self.distance_to_explosion(wrld, next_explosions))
         #f.append(self.distance_to_closest_wall(wrld, next_walls))
         #f.append(self.distance_to_closest_character(wrld, next_characters))
         
@@ -251,6 +245,8 @@ class QCharacter(CharacterEntity):
             delta = (r + gamma * self.optiact(updated_world, w, exit_dis, path)[3]) - Q
         print("delta: ", delta)
         new_w = np.zeros(len(w))
+        print('w',w)
+        print('f',f)
         for i in range(len(w)):
             new_w[i] = w[i] + alpha * delta * f[i]
         return new_w
@@ -428,11 +424,9 @@ class QCharacter(CharacterEntity):
     def is_world_ended(self, events):
         for event in events:
             if event.tpe == Event.BOMB_HIT_CHARACTER:
-                if event.other == self:
-                    return True
+                return True
             elif event.tpe == Event.CHARACTER_KILLED_BY_MONSTER:
-                if event.character == self:
-                    return True
+                return True
             elif event.tpe == Event.CHARACTER_FOUND_EXIT:
                 return True
         return False
