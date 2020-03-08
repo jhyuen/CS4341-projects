@@ -38,14 +38,29 @@ class QCharacter(CharacterEntity):
         grid = self.get_world_grid(wrld)    # changed newwrld to wrld
         path = astar(grid, (player.y, player.x), (next_exit_row, next_exit_col))
         exit_dis = len(path)
-        print('Path: ' + str(path))
-        print("Exit Distance: ", exit_dis)
+        
+        print('')
+        print('Player Position: ' + str(player.x) + ', ' + str(player.y))
+        print('player_last_x: ', self.player_last_x)
+        print('player_last_y: ', self.player_last_y)
+        print('')
+        print('A* Path')
+        visually_aesthetic_path = []
+        for point in range(len(path)):
+            visually_aesthetic_path.append((path[point][1],path[point][0]))
+        print(visually_aesthetic_path)
 
+        #print("Exit Distance: ", exit_dis)
+
+        print('')
+        print("CALCULATING NEXT ACTION - 1 WORLD STEP")
         # stores optimal action list
         actlist = self.optiact(wrld, w, exit_dis, path)
 
-        print("Action did take: ", actlist[0],  ", ", actlist[1])
-        print("Bomb?: ", actlist[2])
+        print('')
+        print("ACTION PLANNED")
+        print('Move: ' + str(actlist[0]),  ",", str(actlist[1]))
+        print("Bomb:", actlist[2])
         self.move(actlist[0], actlist[1])
         if actlist[2]:
             self.place_bomb()
@@ -55,10 +70,12 @@ class QCharacter(CharacterEntity):
         # TODO: check if the game has ended (done() function)
 
         # calculate rewards for the action
-        print("event list", actlist[5])
+        #print("event list", actlist[5])
         r = self.reward(actlist[4], events)
 
-        print("Q Learning Values: ")
+        
+        print('')
+        print("Q LEARNING INITIATED - 2 WORLD STEP")
         new_w = self.Qlearning(updatedwrld, events, actlist[3], actlist[6], r, w, exit_dis, path)
 
         # write to file
@@ -100,14 +117,9 @@ class QCharacter(CharacterEntity):
                                 m.move(dx, dy)
                                 # Get new world
                                 (newwrld, events) = wrld.next()
-
-                                print('Events before the world ends: ')
-                                for event in events:
-                                    print(event)
-                                    print(event.tpe)
-
+                                
                                 if self.is_world_ended(events):
-                                    print("THE WORLD HAS ENDED")
+                                    #print("THE WORLD HAS ENDED")
                                     Q = 0
                                     action[0] = dx
                                     action[1] = dy
@@ -177,9 +189,9 @@ class QCharacter(CharacterEntity):
             elif e.tpe == Event.BOMB_HIT_MONSTER:
                 r += 1
             elif e.tpe == Event.CHARACTER_KILLED_BY_MONSTER:    
-                r -= 2
+                r -= 10
             elif e.tpe == Event.BOMB_HIT_CHARACTER:
-                r -= 2
+                r -= 10
             elif e.tpe == Event.CHARACTER_FOUND_EXIT:
                 r += 2
 
@@ -221,20 +233,22 @@ class QCharacter(CharacterEntity):
                 elif wrld.characters_at(col, row):
                     next_characters.append((col, row))
 
+        print('')
+        print('Action')
+        print("dx, dy: ", dx, dy)
         player = wrld.me(self)
         if player:
             self.player_last_x = player.x
             self.player_last_y = player.y
-        else:
-            self.player_last_x += dx
-            self.player_last_y += dy
+            dx = 0
+            dy = 0
 
-        f.append(self.distance_to_path(wrld, exit_dis, path, self.player_last_x, self.player_last_y))
-        f.append(self.distance_to_closest_monster(wrld, next_monsters, self.player_last_x, self.player_last_y))
+        f.append(self.distance_to_path(wrld, exit_dis, path, self.player_last_x + dx, self.player_last_y + dy))
+        f.append(self.distance_to_closest_monster(wrld, next_monsters, self.player_last_x + dx, self.player_last_y + dy))
         #f.append(self.angle_between_closest_monster_and_exit(wrld, (next_exit_col, next_exit_row), next_monsters, player_last_x, player_last_y))
         #f.append(self.timer_of_closest_bomb(wrld, next_bombs, player_last_x, player_last_y))
-        f.append(self.distance_to_closest_bomb(wrld, next_bombs, self.player_last_x, self.player_last_y))
-        f.append(self.distance_to_explosion(wrld, next_explosions, self.player_last_x, self.player_last_y))
+        f.append(self.distance_to_closest_bomb(wrld, next_bombs, self.player_last_x + dx, self.player_last_y + dy))
+        f.append(self.distance_to_explosion(wrld, next_explosions, self.player_last_x + dx, self.player_last_y + dy))
         #f.append(self.distance_to_closest_wall(wrld, next_walls, player_last_x, player_last_y))
         #f.append(self.distance_to_closest_character(wrld, next_characters))
         
@@ -242,10 +256,9 @@ class QCharacter(CharacterEntity):
         for i in range(0, len(w)):
             Q += w[i]*f[i]
 
-        print("dx, dy: ", dx, dy)
-        print("Q Value: ", Q)
-        print("f values: ")
-        print(f)
+        
+        print("f: " + str(f))
+        print("Q: ", Q)
         return Q, f
 
     # updates w values after each action
@@ -259,10 +272,12 @@ class QCharacter(CharacterEntity):
             delta = (r + gamma * 0) - Q
         else:
             delta = (r + gamma * self.optiact(updated_world, w, exit_dis, path)[3]) - Q
+        
+        print('')
         print("delta: ", delta)
         new_w = np.zeros(len(w))
-        print('w',w)
-        print('f',f)
+        #print('w',w)
+        #print('f',f)
         for i in range(len(w)):
             new_w[i] = w[i] + alpha * delta * f[i]
         return new_w
@@ -283,9 +298,9 @@ class QCharacter(CharacterEntity):
                 # closestCoordToPath = (coord[1], coord[0]) # (col, row) as opposed to former
                 new_exit_dis = len(path)-i
 
-        print("Player: ", player_y, player_x)
-        print("path dis: ", dis_from_path)
-        print('new_exit_dis: ', new_exit_dis)
+        #print("Player: ", player_y, player_x)
+        #print("path dis: ", dis_from_path)
+        #print('new_exit_dis: ', new_exit_dis)
 
         return 1/(new_exit_dis + dis_from_path + 1)
 
@@ -303,7 +318,7 @@ class QCharacter(CharacterEntity):
                 if diff < distance:
                     distance = diff
             
-            return distance
+            return 1/(distance+1)
         else:
             return 0
 
@@ -364,12 +379,13 @@ class QCharacter(CharacterEntity):
                 if diff < distance:
                     distance = diff
             
-            return distance
+            return 1/(distance+1)
         else:
             return 0
         
     #
     def distance_to_explosion(self, world, explosions, player_x, player_y):
+        #print('Explosions:',explosions)
         if explosions:
             # player = world.me(self)
             distance = max(world.width(), world.height())*2
@@ -382,7 +398,7 @@ class QCharacter(CharacterEntity):
                 if diff < distance:
                     distance = diff
             
-            return distance
+            return 1/(distance+1)
         else:
             return 0
 

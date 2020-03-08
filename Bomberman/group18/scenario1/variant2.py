@@ -31,4 +31,4 @@ chara.setFilename("../variant2.txt")
 g.add_character(chara)
 
 # Run!
-g.go(1)
+g.go(0)
