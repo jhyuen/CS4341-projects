@@ -55,7 +55,7 @@ class QCharacter(CharacterEntity):
         r = self.reward(actlist[4], actlist[5])
 
         print("Q Learning Values: ")
-        new_w = self.Qlearning(updatedwrld, actlist[3], actlist[6], r, w, exit_dis, path)
+        new_w = self.Qlearning(updatedwrld, events, actlist[3], actlist[6], r, w, exit_dis, path)
 
         # write to file
         f = open(self.filename, "w")
@@ -77,7 +77,7 @@ class QCharacter(CharacterEntity):
         # stores best move for the character, in order of [dx, dy, bomb?, maxQ, newwrld, events]
         # default value moves toward down right and places the bomb
         # TODO: reset default value or figure out better way to initialize values
-        action = [0, 0, True, Q, wrld.next(), [], []]
+        action = [0, 0, False, Q, wrld.next(), [], []]
 
         # Go through the possible 8-moves of the character and placing the bomb
         # TODO: check what would happen if a bomb has already been placed by the character
@@ -97,7 +97,13 @@ class QCharacter(CharacterEntity):
                                 # Get new world
                                 (newwrld, events) = wrld.next()
 
+                                print('Events before the world ends: ')
+                                for event in events:
+                                    print(event)
+                                    print(event.tpe)
+
                                 if self.is_world_ended(events):
+                                    print("THE WORLD HAS ENDED")
                                     Q = 0
                                     action[0] = dx
                                     action[1] = dy
@@ -105,7 +111,6 @@ class QCharacter(CharacterEntity):
                                     action[3] = Q
                                     action[4] = wrld
                                     action[5] = []
-                                    action[6] = []
                                 else:
                                     # calculate approximate Q value for the new world state
                                     newQ = self.approxQ(newwrld, dx, dy, False, w, exit_dis, path)
@@ -134,7 +139,6 @@ class QCharacter(CharacterEntity):
                             action[3] = Q
                             action[4] = wrld
                             action[5] = []
-                            action[6] = []
                         else:
                             # calculate approximate Q value for the new world state
                             newQ = self.approxQ(newwrld, dx, dy, True, w, exit_dis, path)
@@ -216,13 +220,13 @@ class QCharacter(CharacterEntity):
                     next_characters.append((col, row))
 
         f.append(self.distance_to_path(wrld, exit_dis, path))
-        f.append(self.distance_to_closest_monster(wrld, next_monsters))
-        f.append(self.angle_between_closest_monster_and_exit(wrld, (next_exit_col, next_exit_row), next_monsters))
-        f.append(self.timer_of_closest_bomb(wrld, next_bombs))
-        f.append(self.distance_to_closest_bomb(wrld, next_bombs))
-        f.append(self.distance_to_explosion(wrld, next_explosions))
-        f.append(self.distance_to_closest_wall(wrld, next_walls))
-        f.append(self.distance_to_closest_character(wrld, next_characters))
+        #f.append(self.distance_to_closest_monster(wrld, next_monsters))
+        #f.append(self.angle_between_closest_monster_and_exit(wrld, (next_exit_col, next_exit_row), next_monsters))
+        #f.append(self.timer_of_closest_bomb(wrld, next_bombs))
+        #f.append(self.distance_to_closest_bomb(wrld, next_bombs))
+        #f.append(self.distance_to_explosion(wrld, next_explosions))
+        #f.append(self.distance_to_closest_wall(wrld, next_walls))
+        #f.append(self.distance_to_closest_character(wrld, next_characters))
         
         Q = 0
         for i in range(0, len(w)):
@@ -235,13 +239,16 @@ class QCharacter(CharacterEntity):
         return Q, f
 
     # updates w values after each action
-    def Qlearning(self, updated_world, Q, f, r, w, exit_dis, path):
+    def Qlearning(self, updated_world, events, Q, f, r, w, exit_dis, path):
         alpha = 0.95
         gamma = 0.9
 
         print("Reward: ", r)
         # update w values
-        delta = (r + gamma * self.optiact(updated_world, w, exit_dis, path)[3]) - Q
+        if self.is_world_ended(events):
+            delta = (r + gamma * 0) - Q
+        else:
+            delta = (r + gamma * self.optiact(updated_world, w, exit_dis, path)[3]) - Q
         print("delta: ", delta)
         new_w = np.zeros(len(w))
         for i in range(len(w)):
@@ -427,8 +434,7 @@ class QCharacter(CharacterEntity):
                 if event.character == self:
                     return True
             elif event.tpe == Event.CHARACTER_FOUND_EXIT:
-                if event.character == self:
-                    return True
+                return True
         return False
 
 
