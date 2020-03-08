@@ -35,7 +35,7 @@ class QCharacter(CharacterEntity):
         grid = self.get_world_grid(newwrld)
         path = astar(grid, (player.y, player.x), (next_exit_row, next_exit_col))
         exit_dis = len(path)
-        print(path)
+        print('Path: ' + str(path))
         print("Exit Distance: ", exit_dis)
 
         # stores optimal action list
@@ -95,34 +95,40 @@ class QCharacter(CharacterEntity):
                                 # Get new world
                                 (newwrld, events) = wrld.next()
 
-                                # calculate approximate Q value for the new world state
-                                newQ = self.approxQ(newwrld, dx, dy, False, w, exit_dis, path)
-                                # if new Q value is greater than previous, update optimal actions
-                                if newQ[0] > Q:
-                                    Q = newQ[0]
-                                    action[0] = dx
-                                    action[1] = dy
-                                    action[2] = False
-                                    action[3] = newQ[0]
-                                    action[4] = newwrld
-                                    action[5] = events
+                                if self.is_world_ended(events):
+                                    newQ = 0
+                                else:
+                                    # calculate approximate Q value for the new world state
+                                    newQ = self.approxQ(newwrld, dx, dy, False, w, exit_dis, path)
+                                    # if new Q value is greater than previous, update optimal actions
+                                    if newQ[0] > Q:
+                                        Q = newQ[0]
+                                        action[0] = dx
+                                        action[1] = dy
+                                        action[2] = False
+                                        action[3] = newQ[0]
+                                        action[4] = newwrld
+                                        action[5] = events
                     if dx == 0 and dy == 0:
                         # Set move in wrld
                         m.move(dx, dy)
                         # Get new world
                         (newwrld, events) = wrld.next()
-
-                        # calculate approximate Q value for the new world state
-                        newQ = self.approxQ(newwrld, dx, dy, True, w, exit_dis, path)
-                        # if new Q value is greater than previous, update optimal actions
-                        if newQ[0] > Q:
-                            Q = newQ[0]
-                            action[0] = dx
-                            action[1] = dy
-                            action[2] = True
-                            action[3] = newQ[0]
-                            action[4] = newwrld
-                            action[5] = events
+                        
+                        if self.is_world_ended(events):
+                            newQ = 0
+                        else:
+                            # calculate approximate Q value for the new world state
+                            newQ = self.approxQ(newwrld, dx, dy, True, w, exit_dis, path)
+                            # if new Q value is greater than previous, update optimal actions
+                            if newQ[0] > Q:
+                                Q = newQ[0]
+                                action[0] = dx
+                                action[1] = dy
+                                action[2] = True
+                                action[3] = newQ[0]
+                                action[4] = newwrld
+                                action[5] = events
         return action
 
 
@@ -204,14 +210,15 @@ class QCharacter(CharacterEntity):
 
     # updates w values after each action
     def Qlearning(self, wrld, dx, dy, bomb, newwrld, r, w, exit_dis, path):
+        
         alpha = 0.95
         gamma = 0.9
-
+        
         Q, f = self.approxQ(wrld, dx, dy, bomb, w, exit_dis, path)
 
         print("Reward: ", r)
         # update w values
-        delta = (r + gamma * self.optiact(newwrld, w, exit_dis, path)[3]) - Q
+        delta = (r + gamma * self.optiact(newwrld[0], w, exit_dis, path)[3]) - Q
         print("delta: ", delta)
         new_w = np.zeros(len(w))
         for i in range(len(w)):
@@ -223,14 +230,22 @@ class QCharacter(CharacterEntity):
     def distance_to_path(self, world, exit_dis, path):
         player = world.me(self)
         dis_from_path = math.inf
+        new_exit_dis = -1
 
-        for coord in path:
-            dis_from_path = min(abs(player.y - coord[0]) + abs(player.x - coord[1]), dis_from_path)
+        for i,coord in enumerate(path):
+            # calculate how many moves to reach path
+            # overwrite current dis_from_path if the number of moves is <= to 
+            # find the coordinates of the closest move
+            if max(abs(player.y - coord[0]),abs(player.x - coord[1])) <= dis_from_path: 
+                dis_from_path = max(abs(player.y - coord[0]),abs(player.x - coord[1]))
+                # closestCoordToPath = (coord[1], coord[0]) # (col, row) as opposed to former
+                new_exit_dis = len(path)-i
 
         print("Player: ", player.y, player.x)
         print("path dis: ", dis_from_path)
+        print('new_exit_dis: ', new_exit_dis)
 
-        return 1/(exit_dis + dis_from_path + 1)
+        return 1/(new_exit_dis + dis_from_path + 1)
 
 
     def distance_to_closest_monster(self, world, monsters):
@@ -379,6 +394,19 @@ class QCharacter(CharacterEntity):
                     world_grid[row][col] = 1
 
         return world_grid
+
+    def is_world_ended(self, events):
+        for event in events:
+            if event.tpe == Event.BOMB_HIT_CHARACTER:
+                if event.other == self:
+                    return True
+            elif event.tpe == Event.CHARACTER_KILLED_BY_MONSTER:
+                if event.character == self:
+                    return True
+            elif event.tpe == Event.CHARACTER_FOUND_EXIT:
+                if event.character == self:
+                    return True
+        return False
 
 
 # A* Algorithm
