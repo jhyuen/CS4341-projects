@@ -10,10 +10,10 @@ from monsters.selfpreserving_monster import SelfPreservingMonster
 
 # TODO This is your code!
 sys.path.insert(1, '../groupNN')
-from testcharacter import TestCharacter
+from Qcharacter import QCharacter
 
 # Create the game
-random.seed(123) # TODO Change this if you want different random choices
+random.seed(1223) # TODO Change this if you want different random choices
 g = Game.fromfile('map.txt')
 g.add_monster(SelfPreservingMonster("selfpreserving", # name
                                     "S",              # avatar
@@ -22,10 +22,9 @@ g.add_monster(SelfPreservingMonster("selfpreserving", # name
 ))
 
 # TODO Add your character
-g.add_character(TestCharacter("me", # name
-                              "C",  # avatar
-                              0, 0  # position
-))
+chara = QCharacter("me", "C", 0, 0)
+chara.setFilename("../scenario1_variant3.txt")
+g.add_character(chara)
 
 # Run!
-g.go()
+g.go(1)

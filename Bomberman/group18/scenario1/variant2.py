@@ -10,11 +10,11 @@ from monsters.stupid_monster import StupidMonster
 
 # TODO This is your code!
 sys.path.insert(1, '../groupNN')
-# from Qcharacter import QCharacter
-from interactivecharacter import InteractiveCharacter
+from Qcharacter import QCharacter
+#from interactivecharacter import InteractiveCharacter
 
 # Create the game
-random.seed(1000) # TODO Change this if you want different random choices
+random.seed(16) # TODO Change this if you want different random choices
 g = Game.fromfile('map.txt')
 g.add_monster(StupidMonster("stupid", # name
                             "S",      # avatar
@@ -29,14 +29,9 @@ g.add_monster(StupidMonster("stupid", # name
 #                               0, 0  # position
 # ))
 
-g.add_character(InteractiveCharacter("me", # name
-                                   "C",  # avatar
-                                   0, 0  # position
-))
-
-# chara = QCharacter("me", "C", 0, 0)
-# chara.setFilename("../variant2.txt")
-# g.add_character(chara)
+chara = QCharacter("me", "C", 0, 0)
+chara.setFilename("../scenario1_variant2.txt")
+g.add_character(chara)
 
 # Run!
 g.go(1)

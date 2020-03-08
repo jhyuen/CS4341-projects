@@ -22,7 +22,7 @@ g = Game.fromfile('map.txt')
 
 # Uncomment this if you want the test character
 chara = QCharacter("me", "C", 0, 0)
-chara.setFilename("../variant1.txt")
+chara.setFilename("../scenario_variant1.txt")
 g.add_character(chara)
 
 

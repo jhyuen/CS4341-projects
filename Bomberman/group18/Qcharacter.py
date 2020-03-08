@@ -13,6 +13,9 @@ class QCharacter(CharacterEntity):
 
     player_last_x = -1
     player_last_y = -1
+    opti_dx = 0
+    opti_dy = 0
+    layer = 1
 
     filename = ""
 
@@ -56,6 +59,8 @@ class QCharacter(CharacterEntity):
         print("CALCULATING NEXT ACTION - 1 WORLD STEP")
         # stores optimal action list
         actlist = self.optiact(wrld, w, exit_dis, path)
+        self.opti_dx = actlist[0]
+        self.opti_dy = actlist[1]
 
         print('')
         print("ACTION PLANNED")
@@ -66,6 +71,21 @@ class QCharacter(CharacterEntity):
             self.place_bomb()
 
         (updatedwrld, events) = wrld.next()
+        print("Events happened when updating to second world in do()", updatedwrld.events)
+        self.layer = 2
+
+        if self.layer == 1:
+            self.player_last_x = wrld.me(self).x
+            self.player_last_y = wrld.me(self).y
+        elif self.layer == 2:
+            self.player_last_x = wrld.me(self).x + self.opti_dx
+            self.player_last_y = wrld.me(self).y + self.opti_dy
+
+        print("Layer", self.layer)
+        print("last x:", self.player_last_x)
+        print("last y:", self.player_last_y)
+
+
 
         # TODO: check if the game has ended (done() function)
 
@@ -108,6 +128,25 @@ class QCharacter(CharacterEntity):
                 # Loop through delta y
                 for dy in [-1, 0, 1]:
                     # Make sure the character is moving
+                    if dx == 0 and dy == 0:
+                        # Set move in wrld
+                        m.move(dx, dy)
+                        self.place_bomb()
+                        # Get new world
+                        (newwrld, events) = wrld.next()
+
+                        # calculate approximate Q value for the new world state
+                        newQ = self.approxQ(newwrld, dx, dy, True, w, exit_dis, path)
+                        # if new Q value is greater than previous, update optimal actions
+                        if newQ[0] > Q:
+                            Q = newQ[0]
+                            action[0] = dx
+                            action[1] = dy
+                            action[2] = True
+                            action[3] = newQ[0]
+                            action[4] = newwrld
+                            action[5] = events
+                            action[6] = newQ[1]
                     if (dx != 0) or (dy != 0):
                         # Avoid out-of-bound indexing
                         if (m.y + dy >= 0) and (m.y + dy < wrld.height()):
@@ -118,62 +157,25 @@ class QCharacter(CharacterEntity):
                                 # Get new world
                                 (newwrld, events) = wrld.next()
 
+<<<<<<< HEAD
                                 if self.is_world_ended(events):
                                     #print("THE WORLD HAS ENDED")
                                     Q = 0
+=======
+                                # calculate approximate Q value for the new world state
+                                newQ = self.approxQ(newwrld, dx, dy, False, w, exit_dis, path)
+                                # if new Q value is greater than previous, update optimal actions
+                                if newQ[0] >= Q:
+                                    Q = newQ[0]
+>>>>>>> 27127297d989f6df211e81b8a94569218768e5d2
                                     action[0] = dx
                                     action[1] = dy
                                     action[2] = False
-                                    action[3] = Q
-                                    action[4] = wrld
-                                    action[5] = []
-
-                                    newQ = self.approxQ(newwrld, dx, dy, False, w, exit_dis, path)
+                                    action[3] = newQ[0]
+                                    action[4] = newwrld
+                                    action[5] = events
                                     action[6] = newQ[1]
-                                else:
-                                    # calculate approximate Q value for the new world state
-                                    newQ = self.approxQ(newwrld, dx, dy, False, w, exit_dis, path)
-                                    # if new Q value is greater than previous, update optimal actions
-                                    if newQ[0] > Q:
-                                        Q = newQ[0]
-                                        action[0] = dx
-                                        action[1] = dy
-                                        action[2] = False
-                                        action[3] = newQ[0]
-                                        action[4] = newwrld
-                                        action[5] = events
-                                        action[6] = newQ[1]
-                    if dx == 0 and dy == 0:
-                        # Set move in wrld
-                        m.move(dx, dy)
-                        self.place_bomb()
-                        # Get new world
-                        (newwrld, events) = wrld.next()
-                        
-                        if self.is_world_ended(events):
-                            Q = 0
-                            action[0] = dx
-                            action[1] = dy
-                            action[2] = False
-                            action[3] = Q
-                            action[4] = wrld
-                            action[5] = []
 
-                            newQ = self.approxQ(newwrld, dx, dy, True, w, exit_dis, path)
-                            action[6] = newQ[1]
-                        else:
-                            # calculate approximate Q value for the new world state
-                            newQ = self.approxQ(newwrld, dx, dy, True, w, exit_dis, path)
-                            # if new Q value is greater than previous, update optimal actions
-                            if newQ[0] > Q:
-                                Q = newQ[0]
-                                action[0] = dx
-                                action[1] = dy
-                                action[2] = True
-                                action[3] = newQ[0]
-                                action[4] = newwrld
-                                action[5] = events
-                                action[6] = newQ[1]
         return action
 
 
@@ -191,9 +193,9 @@ class QCharacter(CharacterEntity):
             elif e.tpe == Event.CHARACTER_KILLED_BY_MONSTER:    
                 r -= 10
             elif e.tpe == Event.BOMB_HIT_CHARACTER:
-                r -= 10
+                r -= 50
             elif e.tpe == Event.CHARACTER_FOUND_EXIT:
-                r += 2
+                r += 12
 
         if not self.is_world_ended(events):
             r += 0.01
@@ -236,12 +238,12 @@ class QCharacter(CharacterEntity):
         print('')
         print('Action')
         print("dx, dy: ", dx, dy)
-        player = wrld.me(self)
-        if player:
-            self.player_last_x = player.x
-            self.player_last_y = player.y
-            dx = 0
-            dy = 0
+        # player = wrld.me(self)
+        # if player:
+        #     self.player_last_x = player.x
+        #     self.player_last_y = player.y
+        #     dx = 0
+        #     dy = 0
 
         f.append(self.distance_to_path(wrld, exit_dis, path, self.player_last_x + dx, self.player_last_y + dy))
         f.append(self.distance_to_closest_monster(wrld, next_monsters, self.player_last_x + dx, self.player_last_y + dy))
@@ -263,14 +265,18 @@ class QCharacter(CharacterEntity):
 
     # updates w values after each action
     def Qlearning(self, updated_world, events, Q, f, r, w, exit_dis, path):
-        alpha = 0.95
-        gamma = 0.9
+        alpha = 0.98
+        gamma = 0.95
 
+        print("Events happened when updating to second world", events)
+
+        self.layer = 2
         print("Reward: ", r)
         # update w values
-        if self.is_world_ended(events):
+        if not updated_world.me(self):
             delta = (r + gamma * 0) - Q
         else:
+            print("The second world has not ended")
             delta = (r + gamma * self.optiact(updated_world, w, exit_dis, path)[3]) - Q
         
         print('')
