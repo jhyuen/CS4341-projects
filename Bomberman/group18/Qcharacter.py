@@ -448,6 +448,9 @@ class Node():
 
     def __eq__(self, other):
         return self.position == other.position
+    def __hash__(self):
+        return hash(self.position)
+
 def astar(maze, start, end):
     """Returns a list of tuples as a path from the given start to the given end in the given maze"""
 
@@ -459,7 +462,7 @@ def astar(maze, start, end):
 
     # Initialize both open and closed list
     open_list = []
-    closed_list = []
+    closed_list = set()
 
     # Add the start node
     open_list.append(start_node)
@@ -477,7 +480,7 @@ def astar(maze, start, end):
 
         # Pop current off open list, add to closed list
         open_list.pop(current_index)
-        closed_list.append(current_node)
+        closed_list.add(current_node)
 
         # Found the goal
         if current_node == end_node:
@@ -513,9 +516,8 @@ def astar(maze, start, end):
         for child in children:
 
             # Child is on the closed list
-            for closed_child in closed_list:
-                if child == closed_child:
-                    continue
+            if child in closed_list:
+                continue
 
             # Create the f, g, and h values
             child.g = current_node.g + 1
@@ -529,5 +531,6 @@ def astar(maze, start, end):
 
             # Add the child to the open list
             open_list.append(child)
+
 
 
