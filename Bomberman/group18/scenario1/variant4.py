@@ -9,7 +9,7 @@ from game import Game
 from monsters.selfpreserving_monster import SelfPreservingMonster
 
 # TODO This is your code!
-sys.path.insert(1, '../groupNN')
+sys.path.insert(1, '../group18')
 from Qcharacter import QCharacter
 
 # Create the game
@@ -27,7 +27,7 @@ g.add_monster(SelfPreservingMonster("aggressive", # name
 #                               0, 0  # position
 # ))
 chara = QCharacter("me", "C", 0, 0)
-chara.setFilename("../scenario1_variant3.txt")
+chara.setFilename("../scenario1_variant4.txt")
 g.add_character(chara)
 
 # Run!

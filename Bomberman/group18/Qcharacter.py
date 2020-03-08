@@ -181,18 +181,18 @@ class QCharacter(CharacterEntity):
 
         for e in events:
             if e.tpe == Event.BOMB_HIT_WALL:
-                r += 0.5
+                r += 10
             elif e.tpe == Event.BOMB_HIT_MONSTER:
-                r += 1
+                r += 20
             elif e.tpe == Event.CHARACTER_KILLED_BY_MONSTER:    
-                r -= 10
+                r -= 500
             elif e.tpe == Event.BOMB_HIT_CHARACTER:
-                r -= 50
+                r -= 500
             elif e.tpe == Event.CHARACTER_FOUND_EXIT:
-                r += 12
+                r += 1000
 
         if not self.is_world_ended(events):
-            r += 0.01
+            r += 1
 
         return r
 
