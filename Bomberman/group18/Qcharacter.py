@@ -117,7 +117,7 @@ class QCharacter(CharacterEntity):
                                 m.move(dx, dy)
                                 # Get new world
                                 (newwrld, events) = wrld.next()
-                                
+
                                 if self.is_world_ended(events):
                                     #print("THE WORLD HAS ENDED")
                                     Q = 0
