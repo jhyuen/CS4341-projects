@@ -240,11 +240,11 @@ class QCharacter(CharacterEntity):
         #     dy = 0
 
         f.append(self.distance_to_path(wrld, exit_dis, path, self.player_last_x + dx, self.player_last_y + dy))
-        f.append(self.distance_to_closest_monster(wrld, next_monsters, self.player_last_x + dx, self.player_last_y + dy))
+        f.append(self.distance_to_closest_monster_v2(wrld, next_monsters, self.player_last_x + dx, self.player_last_y + dy))
         #f.append(self.angle_between_closest_monster_and_exit(wrld, (next_exit_col, next_exit_row), next_monsters, player_last_x, player_last_y))
         #f.append(self.timer_of_closest_bomb(wrld, next_bombs, player_last_x, player_last_y))
-        f.append(self.distance_to_closest_bomb(wrld, next_bombs, self.player_last_x + dx, self.player_last_y + dy))
-        f.append(self.distance_to_explosion(wrld, next_explosions, self.player_last_x + dx, self.player_last_y + dy))
+        f.append(self.distance_to_closest_bomb_v2(wrld, next_bombs, self.player_last_x + dx, self.player_last_y + dy))
+        f.append(self.distance_to_explosion_v2(wrld, next_explosions, self.player_last_x + dx, self.player_last_y + dy))
         #f.append(self.distance_to_closest_wall(wrld, next_walls, player_last_x, player_last_y))
         #f.append(self.distance_to_closest_character(wrld, next_characters))
         
@@ -322,6 +322,27 @@ class QCharacter(CharacterEntity):
         else:
             return 0
 
+    def distance_to_closest_monster_v2(self, world, monsters, player_x, player_y):
+        if monsters:
+            # player = world.me(self)
+            distance = max(world.width(), world.height())*2
+            
+            for monster in monsters:
+                vertical_diff = abs(player_y - monster[1])-1
+                horizontal_diff = abs(player_x - monster[0])
+                diff = max(vertical_diff, horizontal_diff)-1 # creates 1 square bubble around monster
+
+                if diff < distance:
+                    distance = diff
+            
+            if (distance == -1):
+                return 1/(distance+2)
+            else:
+                return 1/(distance+1)
+            
+        else:
+            return 0
+
     #
     def angle_between_closest_monster_and_exit(self, world, exit_location, monsters, player_x, player_y):
         if monsters:
@@ -382,6 +403,26 @@ class QCharacter(CharacterEntity):
             return 1/(distance+1)
         else:
             return 0
+
+    def distance_to_closest_bomb_v2(self, world, bombs, player_x, player_y):
+        if bombs:
+            # player = world.me(self)
+            distance = max(world.width(), world.height())*2
+            
+            for bomb in bombs:
+                vertical_diff = abs(player_y - bomb[1])
+                horizontal_diff = abs(player_x - bomb[0])
+                diff = max(vertical_diff, horizontal_diff)-1
+
+                if diff < distance:
+                    distance = diff
+            
+            if (distance == -1):
+                return 1/(distance+2)
+            else:
+                return 1/(distance+1)
+        else:
+            return 0
         
     #
     def distance_to_explosion(self, world, explosions, player_x, player_y):
@@ -399,6 +440,28 @@ class QCharacter(CharacterEntity):
                     distance = diff
             
             return 1/(distance+1)
+        else:
+            return 0
+
+    #
+    def distance_to_explosion_v2(self, world, explosions, player_x, player_y):
+        #print('Explosions:',explosions)
+        if explosions:
+            # player = world.me(self)
+            distance = max(world.width(), world.height())*2
+            
+            for explosion in explosions:
+                vertical_diff = abs(player_y - explosion[1])
+                horizontal_diff = abs(player_x - explosion[0])
+                diff = max(vertical_diff, horizontal_diff)-1
+
+                if diff < distance:
+                    distance = diff
+            
+            if (distance == -1):
+                return 1/(distance+2)
+            else:
+                return 1/(distance+1)
         else:
             return 0
 
