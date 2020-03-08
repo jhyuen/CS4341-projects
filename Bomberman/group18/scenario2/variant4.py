@@ -9,8 +9,9 @@ from game import Game
 from monsters.selfpreserving_monster import SelfPreservingMonster
 
 # TODO This is your code!
-sys.path.insert(1, '../groupNN')
-from testcharacter import TestCharacter
+sys.path.insert(1, '../group18')
+# from testcharacter import TestCharacter
+from Qcharacter import QCharacter
 
 # Create the game
 random.seed(123) # TODO Change this if you want different random choices
@@ -22,10 +23,13 @@ g.add_monster(SelfPreservingMonster("aggressive", # name
 ))
 
 # TODO Add your character
-g.add_character(TestCharacter("me", # name
-                              "C",  # avatar
-                              0, 0  # position
-))
+# g.add_character(TestCharacter("me", # name
+#                               "C",  # avatar
+#                               0, 0  # position
+# ))
+chara = QCharacter("me", "C", 0, 0)
+chara.setFilename("../scenario2_variant4.txt")
+g.add_character(chara)
 
 # Run!
 g.go()

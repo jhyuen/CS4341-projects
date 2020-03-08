@@ -7,7 +7,7 @@ sys.path.insert(1, '..')
 from game import Game
 
 # TODO This is your code!
-sys.path.insert(1, '../groupNN')
+sys.path.insert(1, '../group18')
 
 # Uncomment this if you want the empty test character
 from Qcharacter import QCharacter
@@ -22,7 +22,7 @@ g = Game.fromfile('map.txt')
 
 # Uncomment this if you want the test character
 chara = QCharacter("me", "C", 0, 0)
-chara.setFilename("../scenario_variant1.txt")
+chara.setFilename("../scenario1_variant1.txt")
 g.add_character(chara)
 
 
