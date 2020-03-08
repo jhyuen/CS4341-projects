@@ -11,6 +11,9 @@ from events import Event
 class QCharacter(CharacterEntity):
     # TODO: move all code into TestCharacter
 
+    player_last_x = -1
+    player_last_y = -1
+
     filename = ""
 
     def setFilename(self, filename):
@@ -52,7 +55,8 @@ class QCharacter(CharacterEntity):
         # TODO: check if the game has ended (done() function)
 
         # calculate rewards for the action
-        r = self.reward(actlist[4], actlist[5])
+        print("event list", actlist[5])
+        r = self.reward(actlist[4], events)
 
         print("Q Learning Values: ")
         new_w = self.Qlearning(updatedwrld, events, actlist[3], actlist[6], r, w, exit_dis, path)
@@ -111,6 +115,9 @@ class QCharacter(CharacterEntity):
                                     action[3] = Q
                                     action[4] = wrld
                                     action[5] = []
+
+                                    newQ = self.approxQ(newwrld, dx, dy, False, w, exit_dis, path)
+                                    action[6] = newQ[1]
                                 else:
                                     # calculate approximate Q value for the new world state
                                     newQ = self.approxQ(newwrld, dx, dy, False, w, exit_dis, path)
@@ -139,6 +146,9 @@ class QCharacter(CharacterEntity):
                             action[3] = Q
                             action[4] = wrld
                             action[5] = []
+
+                            newQ = self.approxQ(newwrld, dx, dy, True, w, exit_dis, path)
+                            action[6] = newQ[1]
                         else:
                             # calculate approximate Q value for the new world state
                             newQ = self.approxQ(newwrld, dx, dy, True, w, exit_dis, path)
@@ -163,20 +173,18 @@ class QCharacter(CharacterEntity):
 
         for e in events:
             if e.tpe == Event.BOMB_HIT_WALL:
-                r = r + 10
+                r += 0.5
             elif e.tpe == Event.BOMB_HIT_MONSTER:
-                r = r + 50
-            elif e.tpe == Event.BOMB_HIT_CHARACTER:
-                r = r + 100
+                r += 1
             elif e.tpe == Event.CHARACTER_KILLED_BY_MONSTER:    
-                r = r - 500
+                r -= 2
             elif e.tpe == Event.BOMB_HIT_CHARACTER:
-                r = r - 500
+                r -= 2
             elif e.tpe == Event.CHARACTER_FOUND_EXIT:
-                r = r + 2 * wrld.time
+                r += 2
 
         if not self.is_world_ended(events):
-            r = 1 + 1
+            r += 0.01
 
         return r
 
@@ -213,13 +221,21 @@ class QCharacter(CharacterEntity):
                 elif wrld.characters_at(col, row):
                     next_characters.append((col, row))
 
-        f.append(self.distance_to_path(wrld, exit_dis, path))
-        f.append(self.distance_to_closest_monster(wrld, next_monsters))
-        #f.append(self.angle_between_closest_monster_and_exit(wrld, (next_exit_col, next_exit_row), next_monsters))
-        #f.append(self.timer_of_closest_bomb(wrld, next_bombs))
-        f.append(self.distance_to_closest_bomb(wrld, next_bombs))
-        f.append(self.distance_to_explosion(wrld, next_explosions))
-        #f.append(self.distance_to_closest_wall(wrld, next_walls))
+        player = wrld.me(self)
+        if player:
+            self.player_last_x = player.x
+            self.player_last_y = player.y
+        else:
+            self.player_last_x += dx
+            self.player_last_y += dy
+
+        f.append(self.distance_to_path(wrld, exit_dis, path, self.player_last_x, self.player_last_y))
+        f.append(self.distance_to_closest_monster(wrld, next_monsters, self.player_last_x, self.player_last_y))
+        #f.append(self.angle_between_closest_monster_and_exit(wrld, (next_exit_col, next_exit_row), next_monsters, player_last_x, player_last_y))
+        #f.append(self.timer_of_closest_bomb(wrld, next_bombs, player_last_x, player_last_y))
+        f.append(self.distance_to_closest_bomb(wrld, next_bombs, self.player_last_x, self.player_last_y))
+        f.append(self.distance_to_explosion(wrld, next_explosions, self.player_last_x, self.player_last_y))
+        #f.append(self.distance_to_closest_wall(wrld, next_walls, player_last_x, player_last_y))
         #f.append(self.distance_to_closest_character(wrld, next_characters))
         
         Q = 0
@@ -253,8 +269,8 @@ class QCharacter(CharacterEntity):
 
     # Shortest distance to exit
 
-    def distance_to_path(self, world, exit_dis, path):
-        player = world.me(self)
+    def distance_to_path(self, world, exit_dis, path, player_x, player_y):
+        # player = world.me(self)
         dis_from_path = math.inf
         new_exit_dis = -1
 
@@ -262,53 +278,53 @@ class QCharacter(CharacterEntity):
             # calculate how many moves to reach path
             # overwrite current dis_from_path if the number of moves is <= to 
             # find the coordinates of the closest move
-            if max(abs(player.y - coord[0]),abs(player.x - coord[1])) <= dis_from_path: 
-                dis_from_path = max(abs(player.y - coord[0]),abs(player.x - coord[1]))
+            if max(abs(player_y - coord[0]),abs(player_x - coord[1])) <= dis_from_path: 
+                dis_from_path = max(abs(player_y - coord[0]),abs(player_x - coord[1]))
                 # closestCoordToPath = (coord[1], coord[0]) # (col, row) as opposed to former
                 new_exit_dis = len(path)-i
 
-        print("Player: ", player.y, player.x)
+        print("Player: ", player_y, player_x)
         print("path dis: ", dis_from_path)
         print('new_exit_dis: ', new_exit_dis)
 
         return 1/(new_exit_dis + dis_from_path + 1)
 
 
-    def distance_to_closest_monster(self, world, monsters):
+    def distance_to_closest_monster(self, world, monsters, player_x, player_y):
         if monsters:
-            player = world.me(self)
+            # player = world.me(self)
             distance = max(world.width(), world.height())*2
             
             for monster in monsters:
-                vertical_diff = abs(player.y - monster[1])
-                horizontal_diff = abs(player.x - monster[0])
+                vertical_diff = abs(player_y - monster[1])
+                horizontal_diff = abs(player_x - monster[0])
                 diff = max(vertical_diff, horizontal_diff)
 
                 if diff < distance:
                     distance = diff
             
-            return 1/(distance+1)
+            return distance
         else:
             return 0
 
     #
-    def angle_between_closest_monster_and_exit(self, world, exit_location, monsters):
+    def angle_between_closest_monster_and_exit(self, world, exit_location, monsters, player_x, player_y):
         if monsters:
-            player = world.me(self)
+            # player = world.me(self)
             distance = max(world.width(), world.height())*2
             closest_monster = (world.height(), world.width())
 
             for monster in monsters:
-                vertical_diff = abs(player.y - monster[1])
-                horizontal_diff = abs(player.x - monster[0])
+                vertical_diff = abs(player_y - monster[1])
+                horizontal_diff = abs(player_x - monster[0])
                 diff = max(vertical_diff, horizontal_diff)
 
                 if diff < distance:
                     distance = diff
                     closest_monster = (monster[0], monster[1])
 
-            player_to_monster = np.array([closest_monster[0]-player.x, closest_monster[1]-player.y])
-            player_to_exit = np.array([exit_location[0]-player.x, exit_location[1]-player.y])
+            player_to_monster = np.array([closest_monster[0]-player_x, closest_monster[1]-player_y])
+            player_to_exit = np.array([exit_location[0]-player_x, exit_location[1]-player_y])
             dot_product = np.dot(player_to_monster, player_to_exit)
             return 1/abs(math.degrees(math.acos(dot_product/((np.linalg.norm(player_to_monster)*(np.linalg.norm(player_to_exit)))))))
 
@@ -316,15 +332,15 @@ class QCharacter(CharacterEntity):
             return 0
 
     #
-    def timer_of_closest_bomb(self, world, bombs):
+    def timer_of_closest_bomb(self, world, bombs, player_x, player_y):
         if bombs:
-            player = world.me(self)
+            # player = world.me(self)
             distance = max(world.width(), world.height())*2
             closest_bomb = (world.height(), world.width())
             
             for bomb in bombs:
-                vertical_diff = abs(player.y - bomb[1])
-                horizontal_diff = abs(player.x - bomb[0])
+                vertical_diff = abs(player_y - bomb[1])
+                horizontal_diff = abs(player_x - bomb[0])
                 diff = max(vertical_diff, horizontal_diff)
 
                 if diff < distance:
@@ -335,50 +351,50 @@ class QCharacter(CharacterEntity):
         else:
             return 0
     
-    def distance_to_closest_bomb(self, world, bombs):
+    def distance_to_closest_bomb(self, world, bombs, player_x, player_y):
         if bombs:
-            player = world.me(self)
+            # player = world.me(self)
             distance = max(world.width(), world.height())*2
             
             for bomb in bombs:
-                vertical_diff = abs(player.y - bomb[1])
-                horizontal_diff = abs(player.x - bomb[0])
+                vertical_diff = abs(player_y - bomb[1])
+                horizontal_diff = abs(player_x - bomb[0])
                 diff = max(vertical_diff, horizontal_diff)
 
                 if diff < distance:
                     distance = diff
             
-            return 1/(distance+1)
+            return distance
         else:
             return 0
         
     #
-    def distance_to_explosion(self, world, explosions):
+    def distance_to_explosion(self, world, explosions, player_x, player_y):
         if explosions:
-            player = world.me(self)
+            # player = world.me(self)
             distance = max(world.width(), world.height())*2
             
             for explosion in explosions:
-                vertical_diff = abs(player.y - explosion[1])
-                horizontal_diff = abs(player.x - explosion[0])
+                vertical_diff = abs(player_y - explosion[1])
+                horizontal_diff = abs(player_x - explosion[0])
                 diff = max(vertical_diff, horizontal_diff)
 
                 if diff < distance:
                     distance = diff
             
-            return 1/(distance+1)
+            return distance
         else:
             return 0
 
     #
-    def distance_to_closest_wall(self, world, walls):
+    def distance_to_closest_wall(self, world, walls, player_x, player_y):
         if walls:
-            player = world.me(self)
+            # player = world.me(self)
             distance = max(world.width(), world.height())*2
             
             for wall in walls:
-                vertical_diff = abs(player.y - wall[1])
-                horizontal_diff = abs(player.x - wall[0])
+                vertical_diff = abs(player_y - wall[1])
+                horizontal_diff = abs(player_x - wall[0])
                 diff = max(vertical_diff, horizontal_diff)
 
                 if diff < distance:
@@ -390,8 +406,9 @@ class QCharacter(CharacterEntity):
 
     #
     def distance_to_closest_character(self, world, characters):
-        if len(characters) > 1:
-            player = world.me(self)
+        player = world.me(self)
+
+        if len(characters) > 1 and player:
             distance = max(world.width(), world.height())*2
             
             for character in characters:
@@ -414,10 +431,9 @@ class QCharacter(CharacterEntity):
         # map out in 2D world grid where the walls are
         for row in range(world.height()):
             for col in range(world.width()):
-                if world.wall_at(col, row) or world.bomb_at(col, row) or world.explosion_at(col, row):
+                if world.wall_at(col, row):
                     world_grid[row][col] = 1
-                elif world.monsters_at(col, row) or world.characters_at(col, row):
-                    world_grid[row][col] = 1
+                
 
         return world_grid
 
