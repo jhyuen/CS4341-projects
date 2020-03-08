@@ -13,7 +13,7 @@ sys.path.insert(1, '../groupNN')
 from Qcharacter import QCharacter
 
 # Create the game
-random.seed(1000) # TODO Change this if you want different random choices
+random.seed(16) # TODO Change this if you want different random choices
 g = Game.fromfile('map.txt')
 g.add_monster(StupidMonster("stupid", # name
                             "S",      # avatar
@@ -27,8 +27,8 @@ g.add_monster(StupidMonster("stupid", # name
 # ))
 
 chara = QCharacter("me", "C", 0, 0)
-chara.setFilename("../variant2.txt")
+chara.setFilename("../scenario1_variant2.txt")
 g.add_character(chara)
 
 # Run!
-g.go(0)
+g.go(1)
