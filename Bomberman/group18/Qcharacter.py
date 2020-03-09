@@ -38,21 +38,24 @@ class QCharacter(CharacterEntity):
 
         player = wrld.me(self)
         #(newwrld, events) = wrld.next()
-        grid = self.get_world_grid(wrld)    # changed newwrld to wrld
-        path = astar(grid, (player.y, player.x), (next_exit_row, next_exit_col))
-        exit_dis = len(path)
-        
+
         print('')
         print('Player Position: ' + str(player.x) + ', ' + str(player.y))
         print('player_last_x: ', self.player_last_x)
         print('player_last_y: ', self.player_last_y)
         print('')
-        print('A* Path')
-        visually_aesthetic_path = []
-        for point in range(len(path)):
-            visually_aesthetic_path.append((path[point][1],path[point][0]))
-        print(visually_aesthetic_path)
 
+        grid = self.get_world_grid(wrld)    # changed newwrld to wrld
+        path = astar(grid, (player.y, player.x), (next_exit_row, next_exit_col))
+        if path:
+            exit_dis = len(path)
+            print('A* Path')
+            visually_aesthetic_path = []
+            for point in range(len(path)):
+                visually_aesthetic_path.append((path[point][1],path[point][0]))
+            print(visually_aesthetic_path)
+        else:
+            exit_dis = 0
         #print("Exit Distance: ", exit_dis)
 
         print('')
@@ -239,7 +242,7 @@ class QCharacter(CharacterEntity):
         #     dx = 0
         #     dy = 0
 
-        f.append(self.distance_to_path(wrld, exit_dis, path, self.player_last_x + dx, self.player_last_y + dy))
+        f.append(self.distance_to_path(wrld, exit_dis, path, self.player_last_x + dx, self.player_last_y + dy, next_exit_col, next_exit_row))
         f.append(self.distance_to_closest_monster_v2(wrld, next_monsters, self.player_last_x + dx, self.player_last_y + dy))
         f.append(self.distance_to_closest_bomb_v2(wrld, next_bombs, self.player_last_x + dx, self.player_last_y + dy))
         f.append(self.distance_to_explosion_v2(wrld, next_explosions, self.player_last_x + dx, self.player_last_y + dy))
@@ -258,7 +261,7 @@ class QCharacter(CharacterEntity):
 
     # updates w values after each action
     def Qlearning(self, updated_world, events, Q, f, r, w, exit_dis, path):
-        alpha = 0.1
+        alpha = 0.98
         gamma = 0.95
 
         print("Events happened when updating to second world", events)
@@ -283,25 +286,33 @@ class QCharacter(CharacterEntity):
 
     # Shortest distance to exit
 
-    def distance_to_path(self, world, exit_dis, path, player_x, player_y):
-        # player = world.me(self)
-        dis_from_path = math.inf
-        new_exit_dis = -1
+    def distance_to_path(self, world, exit_dis, path, player_x, player_y, exit_col, exit_row):
+        if path: # path exists - scenario 1
+            # player = world.me(self)
+            dis_from_path = math.inf
+            new_exit_dis = -1
 
-        for i,coord in enumerate(path):
-            # calculate how many moves to reach path
-            # overwrite current dis_from_path if the number of moves is <= to 
-            # find the coordinates of the closest move
-            if max(abs(player_y - coord[0]),abs(player_x - coord[1])) <= dis_from_path: 
-                dis_from_path = max(abs(player_y - coord[0]),abs(player_x - coord[1]))
-                # closestCoordToPath = (coord[1], coord[0]) # (col, row) as opposed to former
-                new_exit_dis = len(path)-i
+            for i,coord in enumerate(path):
+                # calculate how many moves to reach path
+                # overwrite current dis_from_path if the number of moves is <= to 
+                # find the coordinates of the closest move
+                if max(abs(player_y - coord[0]),abs(player_x - coord[1])) <= dis_from_path: 
+                    dis_from_path = max(abs(player_y - coord[0]),abs(player_x - coord[1]))
+                    # closestCoordToPath = (coord[1], coord[0]) # (col, row) as opposed to former
+                    new_exit_dis = len(path)-i
 
-        #print("Player: ", player_y, player_x)
-        #print("path dis: ", dis_from_path)
-        #print('new_exit_dis: ', new_exit_dis)
+            #print("Player: ", player_y, player_x)
+            #print("path dis: ", dis_from_path)
+            #print('new_exit_dis: ', new_exit_dis)
 
-        return 1/(new_exit_dis + dis_from_path + 1)
+            return 1/(new_exit_dis + dis_from_path + 1)
+        else: # path does not exist - scenario 2
+            
+            vertical_diff = abs(player_y - exit_row)
+            horizontal_diff = abs(player_x - exit_col)
+            diff = max(vertical_diff, horizontal_diff)
+            
+            return 1/(diff+1)
 
 
     def distance_to_closest_monster(self, world, monsters, player_x, player_y):
