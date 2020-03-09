@@ -241,12 +241,11 @@ class QCharacter(CharacterEntity):
 
         f.append(self.distance_to_path(wrld, exit_dis, path, self.player_last_x + dx, self.player_last_y + dy))
         f.append(self.distance_to_closest_monster_v2(wrld, next_monsters, self.player_last_x + dx, self.player_last_y + dy))
-        #f.append(self.angle_between_closest_monster_and_exit(wrld, (next_exit_col, next_exit_row), next_monsters, player_last_x, player_last_y))
-        #f.append(self.timer_of_closest_bomb(wrld, next_bombs, player_last_x, player_last_y))
         f.append(self.distance_to_closest_bomb_v2(wrld, next_bombs, self.player_last_x + dx, self.player_last_y + dy))
         f.append(self.distance_to_explosion_v2(wrld, next_explosions, self.player_last_x + dx, self.player_last_y + dy))
-        #f.append(self.distance_to_closest_wall(wrld, next_walls, player_last_x, player_last_y))
-        #f.append(self.distance_to_closest_character(wrld, next_characters))
+        #f.append(self.angle_between_closest_monster_and_exit(wrld, (next_exit_col, next_exit_row), next_monsters, self.player_last_x + dx, self.player_last_y + dy))
+        f.append(self.timer_of_closest_bomb(wrld, next_bombs, self.player_last_x + dx, self.player_last_y + dy))
+        #f.append(self.distance_to_closest_wall(wrld, next_walls, self.player_last_x + dx, self.player_last_y + dy))
         
         Q = 0
         for i in range(0, len(w)):
@@ -259,7 +258,7 @@ class QCharacter(CharacterEntity):
 
     # updates w values after each action
     def Qlearning(self, updated_world, events, Q, f, r, w, exit_dis, path):
-        alpha = 0.98
+        alpha = 0.1
         gamma = 0.95
 
         print("Events happened when updating to second world", events)
@@ -362,8 +361,12 @@ class QCharacter(CharacterEntity):
             player_to_monster = np.array([closest_monster[0]-player_x, closest_monster[1]-player_y])
             player_to_exit = np.array([exit_location[0]-player_x, exit_location[1]-player_y])
             dot_product = np.dot(player_to_monster, player_to_exit)
-            return 1/abs(math.degrees(math.acos(dot_product/((np.linalg.norm(player_to_monster)*(np.linalg.norm(player_to_exit)))))))
+            angle = abs(math.degrees(math.acos(dot_product/((np.linalg.norm(player_to_monster)*(np.linalg.norm(player_to_exit)))))))
 
+            if (angle == 0):
+                return 1
+            else:
+                return 1/(angle)
         else:
             return 0
 
@@ -484,7 +487,7 @@ class QCharacter(CharacterEntity):
             return 0
 
     #
-    def distance_to_closest_character(self, world, characters):
+    def distance_to_closest_character(self, world, characters, player_x, player_y):
         player = world.me(self)
 
         if len(characters) > 1 and player:

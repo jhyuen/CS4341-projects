@@ -14,7 +14,7 @@ from Qcharacter import QCharacter
 #from interactivecharacter import InteractiveCharacter
 
 # Create the game
-random.seed(900) # TODO Change this if you want different random choices
+random.seed(200) # TODO Change this if you want different random choices
 g = Game.fromfile('map.txt')
 g.add_monster(StupidMonster("stupid", # name
                             "S",      # avatar
